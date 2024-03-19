@@ -11,6 +11,7 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QHeaderView>
+#include <QCheckBox>
 #include <choose_widget.h>
 
 class Destination_Recommendation : public QWidget
@@ -43,6 +44,7 @@ private:
     QLineEdit* lineEditSearch = NULL;  //景区/学校输入框
     QRadioButton* buttonHeatValue = NULL;  //按热度排序
     QRadioButton* buttonGoodComments = NULL;  //按评价排序
+    QCheckBox * boxKeyWord = NULL;  //是否关键词优先
     QTableWidget* rankingTable = NULL;  //排名表格
 
     void initWidget();  //界面初始化函数

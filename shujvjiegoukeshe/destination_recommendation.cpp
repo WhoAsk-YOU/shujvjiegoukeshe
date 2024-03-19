@@ -33,6 +33,8 @@ Destination_Recommendation::~Destination_Recommendation(){  //析构函数，释
     buttonGoodComments = NULL;
     delete rankingTable;
     rankingTable = NULL;
+    delete boxKeyWord;
+    boxKeyWord = NULL;
 }
 
 void Destination_Recommendation::showResult(){
@@ -58,8 +60,10 @@ void Destination_Recommendation::showResult(){
         origin_Places.push_back(spots[i]);
     }
 
-    SearchedPlaces = sort(placeSearch(place, origin_Places));
-    //这里到时候会调用排序和查找函数
+    if(boxKeyWord->isChecked())//这里到时候会调用排序和查找函数
+        SearchedPlaces = placeSearch(place, origin_Places);
+    else
+        SearchedPlaces = sort(placeSearch(place, origin_Places));
 
     for(int i = 0; i < rankingTable->rowCount() && i < SearchedPlaces.size(); i++){  //将排序后的数据填入表中
         QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(SearchedPlaces[i].name));
@@ -120,8 +124,12 @@ void Destination_Recommendation::initWidget(){  //初始化目的地推荐界面
     buttonHeatValue->move(500,230);
     buttonHeatValue->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");  //设置按钮大小及字体大小
     buttonGoodComments = new QRadioButton("按评价排序",this);
-    buttonGoodComments->move(700,230);
+    buttonGoodComments->move(650,230);
     buttonGoodComments->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
+
+    boxKeyWord = new QCheckBox("关键词优先",this);
+    boxKeyWord->setGeometry(800,211,100,60);
+    boxKeyWord->setFont(QFont("黑体",12));
 
     rankingTable = new QTableWidget(10,3,this);  //创建10行3列的表格，用于显示景区/学校排名
     rankingTable->verticalHeader()->setVisible(false);  //隐藏垂直表头
