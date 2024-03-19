@@ -52,7 +52,8 @@ private:
     bool comparePlaceMatch(const Place& a, const Place& b, const std::vector<std::string>& queryNgrams);
     std::vector<Place> fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n);
 
-    //void sort();  //排序算法
+    std::vector<Place> sort(const std::vector<Place>& placeNames);
+    static bool compareById(const Place& a, const Place& b);
 };
 
 #endif // DESTINATION_RECOMMENDATION_H

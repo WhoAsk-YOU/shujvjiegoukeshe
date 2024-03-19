@@ -58,12 +58,8 @@ void Destination_Recommendation::showResult(){
         origin_Places.push_back(spots[i]);
     }
 
-    SearchedPlaces = placeSearch(place, origin_Places);
-
+    SearchedPlaces = sort(placeSearch(place, origin_Places));
     //这里到时候会调用排序和查找函数
-
-
-
 
     for(int i = 0; i < rankingTable->rowCount() && i < SearchedPlaces.size(); i++){  //将排序后的数据填入表中
         QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(SearchedPlaces[i].name));
@@ -132,7 +128,7 @@ void Destination_Recommendation::initWidget(){  //初始化目的地推荐界面
     rankingTable->setEditTriggers(QAbstractItemView::NoEditTriggers);  //表格内的数据不允许修改
     rankingTable->move(length/2-255,300);
     rankingTable->resize(572,492);
-    rankingTable->setFont(QFont("黑体",20));
+    rankingTable->setFont(QFont("黑体",18));
     rankingTable->horizontalHeader()->setMinimumHeight(40);
     for(int i = 0; i < rankingTable->rowCount(); i++){
         QTableWidgetItem* item = new QTableWidgetItem(QString::number(i + 1));
@@ -149,50 +145,42 @@ void Destination_Recommendation::initWidget(){  //初始化目的地推荐界面
     rankingTable->setHorizontalHeaderLabels(horizontalHeaderLabels);
 }
 
-std::vector<Destination_Recommendation::Place> Destination_Recommendation::placeSearch(std::string query, std::vector<Destination_Recommendation::Place> spots){
-    int n = 2; // 生成2-grams  这个n可以更改，但目前来看n=2可以得到最优解
-
+std::vector<Destination_Recommendation::Place> Destination_Recommendation::placeSearch(std::string query, std::vector<Place> spots){
+    int n = 3; // 生成3-grams  这个n可以更改，但目前来看n=3可以得到最优解
     if (empty(query))//如果输入为空串，打印所有
-    {
         return spots;
-    }
-    //std::vector<Place> searchResults = fuzzySearchPlaces(query, spots, n);
     return fuzzySearchPlaces(query, spots, n);
 }
 
 std::vector<std::string> Destination_Recommendation::generateNgrams(const std::string& str, int n){
     std::vector<std::string> ngrams;
-    for (size_t i = 0; i <= str.length() - n; ++i) {
+    for (size_t i = 0; i <= str.length() - n; ++i)
         ngrams.push_back(str.substr(i, n));
-    }
     return ngrams;
 }
 
-bool Destination_Recommendation::comparePlaceMatch(const Destination_Recommendation::Place& a, const Destination_Recommendation::Place& b, const std::vector<std::string>& queryNgrams){
-    std::vector<std::string> aNgrams = generateNgrams(a.name, 2);
-    std::vector<std::string> bNgrams = generateNgrams(b.name, 2);
+bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& b, const std::vector<std::string>& queryNgrams){
+    std::vector<std::string> aNgrams = generateNgrams(a.name, 3);
+    std::vector<std::string> bNgrams = generateNgrams(b.name, 3);
 
     int aMatches = 0;
     int bMatches = 0;
     for (const auto& queryNgram : queryNgrams) {
-        if (std::find(aNgrams.begin(), aNgrams.end(), queryNgram) != aNgrams.end()) {
+        if (std::find(aNgrams.begin(), aNgrams.end(), queryNgram) != aNgrams.end())
             ++aMatches;
-        }
-        if (std::find(bNgrams.begin(), bNgrams.end(), queryNgram) != bNgrams.end()) {
+        if (std::find(bNgrams.begin(), bNgrams.end(), queryNgram) != bNgrams.end())
             ++bMatches;
-        }
     }
 
     // 如果匹配数量相同，则按字母顺序排序
-    if (aMatches == bMatches) {
+    if (aMatches == bMatches)
         return a.name < b.name;
-    }
 
     // 返回匹配数量多的地名在前
     return aMatches > bMatches;
 }
 
-std::vector<Destination_Recommendation::Place> Destination_Recommendation::fuzzySearchPlaces(const std::string& query, const std::vector<Destination_Recommendation::Place>& places, int n){
+std::vector<Destination_Recommendation::Place> Destination_Recommendation::fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n){
     std::vector<Place> results;
     std::vector<std::string> queryNgrams = generateNgrams(query, n);
 
@@ -205,9 +193,8 @@ std::vector<Destination_Recommendation::Place> Destination_Recommendation::fuzzy
                 break;
             }
         }
-        if (isMatch) {
+        if (isMatch)
             results.push_back(place);
-        }
     }
 
     // 根据匹配程度对结果进行排序
@@ -218,8 +205,26 @@ std::vector<Destination_Recommendation::Place> Destination_Recommendation::fuzzy
     return results;
 }
 
+bool Destination_Recommendation::compareById(const Place& a, const Place& b) {
+    return a.value > b.value;
+}
 
+std::vector<Destination_Recommendation::Place> Destination_Recommendation::sort(const std::vector<Place>& placeNames) {
+    std::vector<Destination_Recommendation::Place> sortedData(placeNames); // 拷贝数据以便排序
+    int size = sortedData.size();
 
+    // 如果数据少于或等于10个，直接对整个向量进行排序
+    if (size <= 10) {
+        std::sort(sortedData.begin(), sortedData.end(), compareById);
+        return sortedData;
+    }
+
+    // 否则，仅对前10个元素进行排序
+    std::partial_sort(sortedData.begin(), sortedData.begin() + 10, sortedData.end(), compareById);
+
+    // 返回前10个已排序的元素
+    return std::vector<Destination_Recommendation::Place>(sortedData.begin(), sortedData.begin() + 10);
+}
 
 
 
