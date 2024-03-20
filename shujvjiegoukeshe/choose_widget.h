@@ -37,6 +37,7 @@ private:
     QPushButton* buttonChooseback = NULL;  //返回按钮
 
     void initWidget();  //界面初始化函数
+    void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出当前账户名及当前所在景区/学校
 };
 
 #endif // CHOOSE_WIDGET_H

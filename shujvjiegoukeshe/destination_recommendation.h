@@ -4,7 +4,6 @@
 
 #include <QWidget>
 #include <QPushButton>
-#include <QLabel>
 #include <QLineEdit>
 #include <QSqlQuery>
 #include <QRadioButton>
@@ -18,7 +17,7 @@ class Destination_Recommendation : public QWidget
 {
     Q_OBJECT
 public:
-    struct Place{
+    struct Place {  //景区/学校信息
         std::string name;  //景区或学校名
         int value;  //景区或学校对应的热度值/好评数
     };
@@ -38,13 +37,12 @@ private:
     bool flag = false;  //用于判断表格里是否显示数据
     QString accountNumber;  //当前账户名
     Choose_Widget* chooseWidget = NULL;  //选择界面
-    QLabel* labelAccountnum = NULL;  //账户名标签
     QPushButton* buttonExit = NULL;  //退出按钮
     QPushButton* buttonSearch = NULL;  //搜索按钮
     QLineEdit* lineEditSearch = NULL;  //景区/学校输入框
     QRadioButton* buttonHeatValue = NULL;  //按热度排序
     QRadioButton* buttonGoodComments = NULL;  //按评价排序
-    QCheckBox * boxKeyWord = NULL;  //是否关键词优先
+    QCheckBox* boxKeyWord = NULL;  //是否关键词优先
     QTableWidget* rankingTable = NULL;  //排名表格
 
     void initWidget();  //界面初始化函数
@@ -54,8 +52,10 @@ private:
     bool comparePlaceMatch(const Place& a, const Place& b, const std::vector<std::string>& queryNgrams);
     std::vector<Place> fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n);
 
-    std::vector<Place> sort(const std::vector<Place>& placeNames);
+    std::vector<Place> sort(const std::vector<Place>& placeNames);  //排序算法
     static bool compareById(const Place& a, const Place& b);
+
+    void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出当前账户名
 };
 
 #endif // DESTINATION_RECOMMENDATION_H

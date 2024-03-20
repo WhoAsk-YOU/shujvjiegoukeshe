@@ -5,22 +5,20 @@ Destination_Recommendation::Destination_Recommendation(QString accountNumber)
 {
     this->accountNumber = accountNumber;
     initWidget();
-    connect(buttonExit,&QPushButton::clicked,[=](){  //若点击退出按钮
+    connect(buttonExit, &QPushButton::clicked, [=]() {  //若点击退出按钮
         emit this->chooseback();  //发出返回开始界面的信号
     });
-    connect(buttonSearch,&QPushButton::clicked,[=](){  //若点击搜索按钮
+    connect(buttonSearch, &QPushButton::clicked, [=]() {  //若点击搜索按钮
         flag = true;
         showResult();  //表格会显示数据
     });
-    connect(rankingTable,&QTableWidget::cellClicked,[=](int row, int column){  //若点击表格第二列中的某个单元格
-        if(flag == true)  //如果表格里内容不为空
-            tableClicked(row,column);  //跳转到选择界面
+    connect(rankingTable, &QTableWidget::cellClicked, [=](int row, int column) {  //若点击表格第二列中的某个单元格
+        if (flag == true)  //如果表格里内容不为空
+            tableClicked(row, column);  //跳转到选择界面
     });
 }
 
-Destination_Recommendation::~Destination_Recommendation(){  //析构函数，释放空间
-    delete labelAccountnum;
-    labelAccountnum = NULL;
+Destination_Recommendation::~Destination_Recommendation() {  //析构函数，释放空间
     delete buttonExit;
     buttonExit = NULL;
     delete buttonSearch;
@@ -37,35 +35,35 @@ Destination_Recommendation::~Destination_Recommendation(){  //析构函数，释
     boxKeyWord = NULL;
 }
 
-void Destination_Recommendation::showResult(){
+void Destination_Recommendation::showResult() {
     QSqlQuery query;
     QStringList horizontalHeaderLabels;
     Place spots[200];  //结构数组，储存景区/学校名以及对应的热度/好评数
-    std::vector<Place> origin_Places,SearchedPlaces;  //把数组放进向量里，统一PlaceSearch函数返回值格式
+    std::vector<Place> origin_Places, SearchedPlaces;  //把数组放进向量里，统一PlaceSearch函数返回值格式
     std::string place = lineEditSearch->text().toStdString();
-    if(buttonHeatValue->isChecked()){  //若选中了按热度排序
+    if (buttonHeatValue->isChecked()) {  //若选中了按热度排序
         query.exec("select name,heat_value from t_place_ranking");  //从数据库中拿出name及heat_value的所有字段值
         horizontalHeaderLabels << "排名" << "名称" << "热度";  //更改水平表头
         rankingTable->setHorizontalHeaderLabels(horizontalHeaderLabels);
     }
-    else if(buttonGoodComments->isChecked()){  //若选中了按评论排序
+    else if (buttonGoodComments->isChecked()) {  //若选中了按评论排序
         query.exec("select name,good_comments from t_place_ranking");  //从数据库中拿出name及good_comments的所有字段值
         horizontalHeaderLabels << "排名" << "名称" << "好评数";  //更改水平表头
         rankingTable->setHorizontalHeaderLabels(horizontalHeaderLabels);
     }
 
-    for(int i = 0; query.next(); i++){  //遍历数据集，将数据加入结构数组
+    for (int i = 0; query.next(); i++) {  //遍历数据集，将数据加入结构数组
         spots[i].name = query.value(0).toString().toStdString();  //获取景区/学校的名称
         spots[i].value = query.value(1).toInt();  //获取对应的热度或好评数
         origin_Places.push_back(spots[i]);
     }
 
-    if(boxKeyWord->isChecked())//这里到时候会调用排序和查找函数
+    if (boxKeyWord->isChecked())//这里到时候会调用排序和查找函数
         SearchedPlaces = placeSearch(place, origin_Places);
     else
         SearchedPlaces = sort(placeSearch(place, origin_Places));
 
-    for(int i = 0; i < rankingTable->rowCount() && i < SearchedPlaces.size(); i++){  //将排序后的数据填入表中
+    for (int i = 0; i < rankingTable->rowCount() && i < (int)SearchedPlaces.size(); i++) {  //将排序后的数据填入表中
         QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(SearchedPlaces[i].name));
         QTableWidgetItem* itemValue = new QTableWidgetItem(QString::number(SearchedPlaces[i].value));
         itemName->setTextAlignment(Qt::AlignCenter);
@@ -75,14 +73,14 @@ void Destination_Recommendation::showResult(){
     }
 }
 
-void Destination_Recommendation::tableClicked(int row, int column){
-    if(column==1){
-        QTableWidgetItem *item = rankingTable->item(row, column);  //获取到点击单元格的内容，即景区/学校名
+void Destination_Recommendation::tableClicked(int row, int column) {
+    if (column == 1) {
+        QTableWidgetItem* item = rankingTable->item(row, column);  //获取到点击单元格的内容，即景区/学校名
         this->hide();  //隐藏目的地推荐界面
-        chooseWidget = new Choose_Widget(accountNumber,item->text());
+        chooseWidget = new Choose_Widget(accountNumber, item->text());
         chooseWidget->setGeometry(this->geometry());  //界面位置不会变化
         chooseWidget->show();  //显示选择界面
-        connect(chooseWidget,&Choose_Widget::chooseback,[=](){  //若在选择界面点击了返回按钮，接受返回信号
+        connect(chooseWidget, &Choose_Widget::chooseback, [=]() {  //若在选择界面点击了返回按钮，接受返回信号
             this->setGeometry(chooseWidget->geometry());
             this->show();
             delete chooseWidget;
@@ -91,54 +89,49 @@ void Destination_Recommendation::tableClicked(int row, int column){
     }
 }
 
-void Destination_Recommendation::initWidget(){  //初始化目的地推荐界面
+void Destination_Recommendation::initWidget() {  //初始化目的地推荐界面
     QStringList horizontalHeaderLabels;
     length = 1400;
     width = 950;
     setWindowTitle("学生游学系统");
-    setFixedSize(length,width);
-
-    labelAccountnum = new QLabel("当前账户名:"+accountNumber,this);
-    labelAccountnum->setGeometry(length*2/5+20, 0, length/5, width/6);  //设置文本框位置及大小
-    labelAccountnum->setAlignment(Qt::AlignCenter);  //文本框内容居中显示
-    labelAccountnum->setStyleSheet("QLabel{font:25px;}");  //设置文本框字体
+    setFixedSize(length, width);
 
     buttonExit = new QPushButton("退出", this);
-    buttonExit->move(0, width*8/9);
-    buttonExit->resize(length/9, width/9);
-    buttonExit->setFont(QFont("黑体",25));
+    buttonExit->move(0, width * 8 / 9);
+    buttonExit->resize(length / 9, width / 9);
+    buttonExit->setFont(QFont("黑体", 25));
     buttonSearch = new QPushButton("搜索", this);
-    buttonSearch->move(length/2+length/7, width*3/19);
-    buttonSearch->resize(length/17, width/17);
-    buttonSearch->setFont(QFont("黑体",21));
+    buttonSearch->move(length / 2 + length / 7, width * 3 / 19);
+    buttonSearch->resize(length / 17, width / 17);
+    buttonSearch->setFont(QFont("黑体", 21));
 
     lineEditSearch = new QLineEdit(this);
-    lineEditSearch->setGeometry(length/2-length/7,width*3/19,length/3.5,width/17);
-    lineEditSearch->setFont(QFont("黑体",15));
+    lineEditSearch->setGeometry(length / 2 - length / 7, width * 3 / 19, length / 3.5, width / 17);
+    lineEditSearch->setFont(QFont("黑体", 15));
     lineEditSearch->setPlaceholderText("请输入景区或学校名/关键词");
     lineEditSearch->setClearButtonEnabled(true);
     lineEditSearch->setMaxLength(20);
 
-    buttonHeatValue = new QRadioButton("按热度排序",this);
+    buttonHeatValue = new QRadioButton("按热度排序", this);
     buttonHeatValue->setChecked(true);  //默认选中按热度排序
-    buttonHeatValue->move(500,230);
+    buttonHeatValue->move(500, 230);
     buttonHeatValue->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");  //设置按钮大小及字体大小
-    buttonGoodComments = new QRadioButton("按评价排序",this);
-    buttonGoodComments->move(650,230);
+    buttonGoodComments = new QRadioButton("按评价排序", this);
+    buttonGoodComments->move(650, 230);
     buttonGoodComments->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
 
-    boxKeyWord = new QCheckBox("关键词优先",this);
-    boxKeyWord->setGeometry(800,211,100,60);
-    boxKeyWord->setFont(QFont("黑体",12));
+    boxKeyWord = new QCheckBox("关键词优先", this);
+    boxKeyWord->setGeometry(800, 211, 100, 60);
+    boxKeyWord->setFont(QFont("黑体", 12));
 
-    rankingTable = new QTableWidget(10,3,this);  //创建10行3列的表格，用于显示景区/学校排名
+    rankingTable = new QTableWidget(10, 3, this);  //创建10行3列的表格，用于显示景区/学校排名
     rankingTable->verticalHeader()->setVisible(false);  //隐藏垂直表头
     rankingTable->setEditTriggers(QAbstractItemView::NoEditTriggers);  //表格内的数据不允许修改
-    rankingTable->move(length/2-255,300);
-    rankingTable->resize(572,492);
-    rankingTable->setFont(QFont("黑体",18));
+    rankingTable->move(length / 2 - 255, 300);
+    rankingTable->resize(572, 492);
+    rankingTable->setFont(QFont("黑体", 18));
     rankingTable->horizontalHeader()->setMinimumHeight(40);
-    for(int i = 0; i < rankingTable->rowCount(); i++){
+    for (int i = 0; i < rankingTable->rowCount(); i++) {
         QTableWidgetItem* item = new QTableWidgetItem(QString::number(i + 1));
         item->setTextAlignment(Qt::AlignCenter);  //文本居中对齐
         rankingTable->setItem(i, 0, item);
@@ -153,21 +146,21 @@ void Destination_Recommendation::initWidget(){  //初始化目的地推荐界面
     rankingTable->setHorizontalHeaderLabels(horizontalHeaderLabels);
 }
 
-std::vector<Destination_Recommendation::Place> Destination_Recommendation::placeSearch(std::string query, std::vector<Place> spots){
+std::vector<Destination_Recommendation::Place> Destination_Recommendation::placeSearch(std::string query, std::vector<Place> spots) {
     int n = 3; // 生成3-grams  这个n可以更改，但目前来看n=3可以得到最优解
     if (empty(query))//如果输入为空串，打印所有
         return spots;
     return fuzzySearchPlaces(query, spots, n);
 }
 
-std::vector<std::string> Destination_Recommendation::generateNgrams(const std::string& str, int n){
+std::vector<std::string> Destination_Recommendation::generateNgrams(const std::string& str, int n) {
     std::vector<std::string> ngrams;
     for (size_t i = 0; i <= str.length() - n; ++i)
         ngrams.push_back(str.substr(i, n));
     return ngrams;
 }
 
-bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& b, const std::vector<std::string>& queryNgrams){
+bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& b, const std::vector<std::string>& queryNgrams) {
     std::vector<std::string> aNgrams = generateNgrams(a.name, 3);
     std::vector<std::string> bNgrams = generateNgrams(b.name, 3);
 
@@ -188,7 +181,7 @@ bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& 
     return aMatches > bMatches;
 }
 
-std::vector<Destination_Recommendation::Place> Destination_Recommendation::fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n){
+std::vector<Destination_Recommendation::Place> Destination_Recommendation::fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n) {
     std::vector<Place> results;
     std::vector<std::string> queryNgrams = generateNgrams(query, n);
 
@@ -234,16 +227,12 @@ std::vector<Destination_Recommendation::Place> Destination_Recommendation::sort(
     return std::vector<Destination_Recommendation::Place>(sortedData.begin(), sortedData.begin() + 10);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+void Destination_Recommendation::paintEvent(QPaintEvent*) {
+    QPen pen(Qt::black);  //画笔颜色为黑色
+    pen.setWidth(2);  //画笔宽度
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
+    painter.setPen(pen);  //使用pen画图
+    painter.setFont(QFont("黑体", 25));
+    painter.drawText(630,100, "当前账户名:" + accountNumber);
+}

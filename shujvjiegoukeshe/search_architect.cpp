@@ -36,7 +36,7 @@ void Search_Architect::initWidget(){
     QStringList horizontalHeaderLabels;
     types<<"全部"<<"商店"<<"饭店"<<"洗手间"<<"图书馆"<<"食堂"<<"超市"<<"咖啡馆"<<"医院"<<"花园"<<"体育馆";
     length = 1400;
-    width = 950;  
+    width = 950;
     setWindowTitle("学生游学系统");
     setFixedSize(length,width);
 

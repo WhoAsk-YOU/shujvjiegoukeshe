@@ -14,8 +14,14 @@ class Route_Strategy : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Route_Strategy(QWidget *parent = nullptr);
+    explicit Route_Strategy(QWidget* parent = nullptr);
     ~Route_Strategy();
+    struct RoadLengthInfo {  //道路(长度)信息
+        std::string start;  //起点
+        std::string end;  //终点
+        int length;  //长度(m)
+    };
+    using StringList = std::vector<std::string>;
 
 signals:
     void chooseback();  //返回信号
@@ -24,9 +30,6 @@ private:
     int length;  //窗口的长
     int width;  //窗口的宽
     int mode = 0;  //若未点击查询按钮,mode=0;若点击了目的地(1个)查询按钮,mode=1;若点击了目的地(多个)查询按钮,mode=2
-    QString initialLocation;  //起始位置
-    QString destination;  //目的地(1个)
-    QStringList destinations;  //目的地(多个)
     QLabel* labelInitial = NULL;  //起始位置
     QLabel* labelDestination = NULL;  //目的地（1个）
     QLabel* labelDestinations = NULL;  //目的地（多个）
@@ -40,11 +43,16 @@ private:
     QLineEdit* lineEditDestinations = NULL;  //目的地输入框
 
     void initWidget();  //界面初始化函数
-    //QStringList pointToPointShortestDistance(QString initialLocation,QString destination);  //点到点的最短距离
+
+    StringList pointToPointShortestDistance(const std::string& start, const std::string& end,
+                                            const std::vector<RoadLengthInfo>& roads, int& totallength);  //点到点的最短距离
+    std::pair<StringList, int> dijkstra(const std::string& start, const std::string& end, const std::vector<RoadLengthInfo>& roads);
+    bool isValidNode(const std::string& node, const std::vector<RoadLengthInfo>& roads);  // 检查输入的节点是否存在于道路信息中
+
     //QStringList pointToPointShortestTime(QString initialLocation,QString destination);  //点到点的最短时间
     //QStringList multiPointShortestDistance(QString initialLocation, QStringList destinations);  //途径多点的最短距离
     //QStringList multiPointShortestTime(QString initialLocation, QStringList destinations);  //途径多点的最短时间
-    void paintEvent(QPaintEvent *);  //重写paintEvent函数，用于在屏幕上打印出路线
+    void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出路线
 
 };
 

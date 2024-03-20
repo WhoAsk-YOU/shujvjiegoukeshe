@@ -15,7 +15,7 @@ class Search_Architect : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Search_Architect(QWidget *parent = nullptr);
+    explicit Search_Architect(QWidget* parent = nullptr);
     ~Search_Architect();
 
 signals:

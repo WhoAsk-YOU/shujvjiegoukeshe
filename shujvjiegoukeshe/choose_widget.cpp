@@ -6,21 +6,21 @@ Choose_Widget::Choose_Widget(QString accountNumber, QString place)//构造函数
     this->accountNumber = accountNumber;
     this->place = place;
     initWidget();
-    connect(buttonChooseback,&QPushButton::clicked,[=](){  //若点击返回按钮
+    connect(buttonChooseback, &QPushButton::clicked, [=]() {  //若点击返回按钮
         emit this->chooseback();  //发出返回目的地推荐界面的信号
     });
-    connect(buttonRoute,&QPushButton::clicked,[=](){  //若点击游学路线规划按钮
+    connect(buttonRoute, &QPushButton::clicked, [=]() {  //若点击游学路线规划按钮
         clickRoute();
     });
-    connect(buttonDiary,&QPushButton::clicked,[=](){  //若点击游学日记管理按钮
+    connect(buttonDiary, &QPushButton::clicked, [=]() {  //若点击游学日记管理按钮
         clickDiary();
     });
-    connect(buttonSearchArchitect,&QPushButton::clicked,[=](){  //若点击场所查询按钮
+    connect(buttonSearchArchitect, &QPushButton::clicked, [=]() {  //若点击场所查询按钮
         clickSearchArchitect();
     });
 }
 
-Choose_Widget::~Choose_Widget(){  //析构函数
+Choose_Widget::~Choose_Widget() {  //析构函数
     delete buttonSearchArchitect;
     buttonSearchArchitect = NULL;
     delete buttonDiary;
@@ -31,12 +31,12 @@ Choose_Widget::~Choose_Widget(){  //析构函数
     buttonChooseback = NULL;
 }
 
-void Choose_Widget::clickSearchArchitect(){
+void Choose_Widget::clickSearchArchitect() {
     this->hide();
     searchArchitect = new Search_Architect;
     searchArchitect->setGeometry(this->geometry());
     searchArchitect->show();
-    connect(searchArchitect,&Search_Architect::chooseback,[=](){
+    connect(searchArchitect, &Search_Architect::chooseback, [=]() {
         this->setGeometry(searchArchitect->geometry());
         this->show();
         delete searchArchitect;
@@ -44,12 +44,12 @@ void Choose_Widget::clickSearchArchitect(){
     });
 }
 
-void Choose_Widget::clickDiary(){
+void Choose_Widget::clickDiary() {
     this->hide();
     diaryManagement = new Diary_Management(accountNumber, place);
     diaryManagement->setGeometry(this->geometry());
     diaryManagement->show();
-    connect(diaryManagement,&Diary_Management::chooseback,[=](){
+    connect(diaryManagement, &Diary_Management::chooseback, [=]() {
         this->setGeometry(diaryManagement->geometry());
         this->show();
         delete diaryManagement;
@@ -57,12 +57,12 @@ void Choose_Widget::clickDiary(){
     });
 }
 
-void Choose_Widget::clickRoute(){
+void Choose_Widget::clickRoute() {
     this->hide();
     routeStrategy = new Route_Strategy;
     routeStrategy->setGeometry(this->geometry());
     routeStrategy->show();
-    connect(routeStrategy,&Route_Strategy::chooseback,[=](){
+    connect(routeStrategy, &Route_Strategy::chooseback, [=]() {
         this->setGeometry(routeStrategy->geometry());
         this->show();
         delete routeStrategy;
@@ -70,29 +70,37 @@ void Choose_Widget::clickRoute(){
     });
 }
 
-void Choose_Widget::initWidget(){
+void Choose_Widget::initWidget() {
     length = 1400;
     width = 950;
     setWindowTitle("学生游学系统");
-    setFixedSize(length,width);
+    setFixedSize(length, width);
 
     buttonSearchArchitect = new QPushButton("场所查询", this);
-    buttonSearchArchitect->move(length/3, width/4-105);
-    buttonSearchArchitect->resize(length/3, width/9);
-    buttonSearchArchitect->setFont(QFont("黑体",25));
+    buttonSearchArchitect->move(length / 3, width / 4 - 50);
+    buttonSearchArchitect->resize(length / 3, width / 9);
+    buttonSearchArchitect->setFont(QFont("黑体", 25));
     buttonDiary = new QPushButton("游学日记管理", this);
-    buttonDiary->move(length/3, width/2-105);
-    buttonDiary->resize(length/3, width/9);
-    buttonDiary->setFont(QFont("黑体",25));
+    buttonDiary->move(length / 3, width / 2 - 50);
+    buttonDiary->resize(length / 3, width / 9);
+    buttonDiary->setFont(QFont("黑体", 25));
     buttonRoute = new QPushButton("游学路线规划", this);
-    buttonRoute->move(length/3, width*3/4-105);
-    buttonRoute->resize(length/3, width/9);
-    buttonRoute->setFont(QFont("黑体",25));
+    buttonRoute->move(length / 3, width * 3 / 4 - 50);
+    buttonRoute->resize(length / 3, width / 9);
+    buttonRoute->setFont(QFont("黑体", 25));
     buttonChooseback = new QPushButton("返回", this);
-    buttonChooseback->move(0, width*8/9);
-    buttonChooseback->resize(length/9, width/9);
-    buttonChooseback->setFont(QFont("黑体",25));
+    buttonChooseback->move(0, width * 8 / 9);
+    buttonChooseback->resize(length / 9, width / 9);
+    buttonChooseback->setFont(QFont("黑体", 25));
 }
 
-
-
+void Choose_Widget::paintEvent(QPaintEvent*) {
+    QPen pen(Qt::black);  //画笔颜色为黑色
+    pen.setWidth(2);  //画笔宽度
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
+    painter.setPen(pen);  //使用pen画图
+    painter.setFont(QFont("黑体", 25));
+    painter.drawText(400,100, "当前账户名:" + accountNumber);
+    painter.drawText(700,100, "当前所在景区/学校:" + place);
+}
