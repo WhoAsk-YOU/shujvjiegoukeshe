@@ -1,5 +1,6 @@
 ﻿//场所查询界面
 #include "search_architect.h"
+#include <iostream>
 
 Search_Architect::Search_Architect(QWidget *parent)
     : QWidget{parent}
@@ -87,30 +88,53 @@ void Search_Architect::initWidget(){
     horizontalHeaderLabels << "设施名称" << "到查询场所的距离";
     searchTable->setHorizontalHeaderLabels(horizontalHeaderLabels);
 }
-/*
-QStringList Search_Architect::search(QString type, QStringList allFacilities){
 
+Search_Architect::StringList Search_Architect::search(const std::string& type, const StringList& allFacilities) {
+    StringList result;
+    // 如果设施类型为“全部”，直接返回所有设施名称
+    if (type == "全部")
+        return allFacilities;
+
+    // 否则，搜索与设施类型相符的设施名（设施类型为设施名的子串）
+    for (const std::string& facility : allFacilities) {
+        if (facility.size() >= type.size()) { // 如果设施名长度小于设施类型，不符合条件
+            bool match = true;
+            for (size_t i = 0; i <= facility.size() - type.size(); ++i) {
+                match = true;
+                for (size_t j = 0; j < type.size(); ++j) {
+                    if (tolower(facility[i + j]) != tolower(type[j])) { // 忽略大小写进行匹配
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) { // 如果找到匹配的子串，则加入结果列表中
+                    result.push_back(facility);
+                    break; // 终止内部循环，继续下一个设施名的匹配
+                }
+            }
+        }
+    }
+
+    return result;
 }
-
+/*
 void Search_Architect::sort(QString location, QStringList facilities){
 
 }
 */
 void Search_Architect::showResult(){
     QSqlQuery query;
-    QStringList allFacilities, facilities;
-    location = boxLocation->currentText();
-    type = boxType->currentText();
-    query.exec("select name from t_architect limit 15,55");
+    StringList allFacilities, facilities;
+    std::string location = boxLocation->currentText().toStdString();
+    std::string type = boxType->currentText().toStdString();
+    query.exec("select name from t_architect order by architect_id limit 20,50");
     while(query.next()){
-        QString name = query.value(0).toString();
-        allFacilities.append(name);
+        std::string name = query.value(0).toString().toStdString();
+        allFacilities.push_back(name);
     }
-    //facilities = search(type, allFacilities);
+    facilities = search(type, allFacilities);
 
     //这里要调用查找和排序函数
-
-
 
 
     for(int i = 0; i < searchTable->rowCount(); i++){  //将排序后的数据填入表中

@@ -67,19 +67,19 @@ void Start_widget::initWidget() {  //初始化开始界面
 }
 
 void Start_widget::logOn() {  //登录
-    QString accountNumber = lineEditAccountNumber->text();
-    QString password = lineEditPassword->text();
+    QString accountNumber = lineEditAccountNumber->text();  //从输入框中获取账户名
+    QString password = lineEditPassword->text();  //从输入框中获取密码
     QSqlQuery query;
     if (accountNumber == "") {  //感谢ljc同学的智力贡献，添加了账号和密码不能为空的判断
-        QMessageBox::information(this, "登录失败", "登录失败，账号不能为空");
+        QMessageBox::information(this, "登录失败", "登录失败，账号不能为空");  //弹出对话框
         return;
     }
     if (password == "") {
-        QMessageBox::information(this, "登录失败", "登录失败，密码不能为空");
+        QMessageBox::information(this, "登录失败", "登录失败，密码不能为空");  //弹出对话框
         return;
     }
     havingSignIn = false;
-    query.exec("select account_number,password from t_user");
+    query.exec("select account_number,password from t_user");  //从数据库中查询所有的账户名及密码
     while (query.next() && !havingSignIn) {  //记录未遍历完且还未在数据库中匹配到输入的账号
         if (accountNumber == query.value("account_number")) {  //账号匹配
             havingSignIn = true;
@@ -97,7 +97,7 @@ void Start_widget::logOn() {  //登录
                 });
             }
             else  //密码错误
-                QMessageBox::information(this, "登陆失败", "密码错误，请重新输入");
+                QMessageBox::information(this, "登陆失败", "密码错误，请重新输入");  //弹出对话框
         }
     }
     if (!havingSignIn)  //未注册过
@@ -109,26 +109,26 @@ void Start_widget::signIn() {  //注册
     QString password = lineEditPassword->text();
     QSqlQuery query;
     if (accountNumber == "") {  //感谢ljc同学的智力贡献，添加了账号和密码不能为空的判断
-        QMessageBox::information(this, "注册失败", "注册失败，账号不能为空");
+        QMessageBox::information(this, "注册失败", "注册失败，账号不能为空");  //弹出对话框
         return;
     }
     if (password == "") {
-        QMessageBox::information(this, "注册失败", "注册失败，密码不能为空");
+        QMessageBox::information(this, "注册失败", "注册失败，密码不能为空");  //弹出对话框
         return;
     }
     havingSignIn = false;  //是否注册过，即数据库里是否有输入的账号
-    query.exec("select account_number from t_user");
+    query.exec("select account_number from t_user");  //从数据库中查询所有的账户名
     while (query.next() && !havingSignIn) {
-        if (accountNumber == query.value("account_number")) {
+        if (accountNumber == query.value("account_number")) {  //数据库中存在账号
             havingSignIn = true;
             QMessageBox::information(this, "注册失败", "注册失败，该账号已注册");
         }
     }
-    if (!havingSignIn) {
+    if (!havingSignIn) {  //若未注册过
         query.prepare("insert into t_user(account_number,password) values(:account_number,:password);");
         query.bindValue(":account_number", accountNumber);
         query.bindValue(":password", password);
-        query.exec();
+        query.exec();  //向数据库中添加账户和密码信息
         QMessageBox::information(this, "注册成功", "注册成功，请登录");
     }
 }

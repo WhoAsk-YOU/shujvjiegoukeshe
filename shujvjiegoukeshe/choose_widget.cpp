@@ -101,6 +101,6 @@ void Choose_Widget::paintEvent(QPaintEvent*) {
     painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
     painter.setPen(pen);  //使用pen画图
     painter.setFont(QFont("黑体", 25));
-    painter.drawText(400,100, "当前账户名:" + accountNumber);
-    painter.drawText(700,100, "当前所在景区/学校:" + place);
+    painter.drawText(340,100, "当前账户名:" + accountNumber);
+    painter.drawText(640,100, "当前所在景区/学校:" + place);
 }

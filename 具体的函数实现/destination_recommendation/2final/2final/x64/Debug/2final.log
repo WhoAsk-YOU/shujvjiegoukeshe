@@ -1,3 +1,0 @@
-﻿  1.cpp
-C:\Users\叼只羊1\Desktop\2final\1.cpp(88,14): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-  2final.vcxproj -> C:\Users\叼只羊1\Desktop\2final\x64\Debug\2final.exe

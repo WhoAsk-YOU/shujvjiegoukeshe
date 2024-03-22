@@ -41,6 +41,12 @@ void Destination_Recommendation::showResult() {
     Place spots[200];  //结构数组，储存景区/学校名以及对应的热度/好评数
     std::vector<Place> origin_Places, SearchedPlaces;  //把数组放进向量里，统一PlaceSearch函数返回值格式
     std::string place = lineEditSearch->text().toStdString();
+
+    for (int i = 0; i < rankingTable->rowCount(); i++) {  //清空表中的内容
+        rankingTable->setItem(i, 1, new QTableWidgetItem(""));
+        rankingTable->setItem(i, 2, new QTableWidgetItem(""));
+    }
+
     if (buttonHeatValue->isChecked()) {  //若选中了按热度排序
         query.exec("select name,heat_value from t_place_ranking");  //从数据库中拿出name及heat_value的所有字段值
         horizontalHeaderLabels << "排名" << "名称" << "热度";  //更改水平表头
@@ -58,10 +64,10 @@ void Destination_Recommendation::showResult() {
         origin_Places.push_back(spots[i]);
     }
 
-    if (boxKeyWord->isChecked())//这里到时候会调用排序和查找函数
-        SearchedPlaces = placeSearch(place, origin_Places);
-    else
-        SearchedPlaces = sort(placeSearch(place, origin_Places));
+    if (boxKeyWord->isChecked())  //如果选中了关键词优先
+        SearchedPlaces = placeSearch(place, origin_Places);  //只模糊查找不排序
+    else  //如果没选中关键词优先
+        SearchedPlaces = sort(placeSearch(place, origin_Places));  //模糊查找后再排序
 
     for (int i = 0; i < rankingTable->rowCount() && i < (int)SearchedPlaces.size(); i++) {  //将排序后的数据填入表中
         QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(SearchedPlaces[i].name));
@@ -234,5 +240,5 @@ void Destination_Recommendation::paintEvent(QPaintEvent*) {
     painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
     painter.setPen(pen);  //使用pen画图
     painter.setFont(QFont("黑体", 25));
-    painter.drawText(630,100, "当前账户名:" + accountNumber);
+    painter.drawText(630, 100, "当前账户名:" + accountNumber);
 }

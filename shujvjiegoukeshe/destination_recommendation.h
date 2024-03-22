@@ -4,6 +4,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+#include <QPainter>
 #include <QLineEdit>
 #include <QSqlQuery>
 #include <QRadioButton>
@@ -36,7 +37,7 @@ private:
     int width;  //窗口的宽
     bool flag = false;  //用于判断表格里是否显示数据
     QString accountNumber;  //当前账户名
-    Choose_Widget* chooseWidget = NULL;  //选择界面
+    Choose_Widget* chooseWidget = NULL;  //游学路线规划、场所查询、游学日记管理选择界面
     QPushButton* buttonExit = NULL;  //退出按钮
     QPushButton* buttonSearch = NULL;  //搜索按钮
     QLineEdit* lineEditSearch = NULL;  //景区/学校输入框

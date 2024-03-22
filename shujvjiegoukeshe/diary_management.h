@@ -13,6 +13,7 @@
 #include <QTableWidgetItem>
 #include <QHeaderView>
 #include <QLineEdit>
+#include <QPainter>
 
 class Diary_Management : public QWidget
 {
@@ -45,7 +46,7 @@ private:
     QTableWidget* tableDiaryInfo = NULL;  //日记信息表格
 
     void initWidget();  //界面初始化函数
-
+    void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出当前账户名及当前所在景区/学校
 };
 
 #endif // DIARY_MANAGEMENT_H

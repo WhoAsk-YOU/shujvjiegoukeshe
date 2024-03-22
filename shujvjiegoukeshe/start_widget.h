@@ -2,7 +2,7 @@
 #ifndef START_WIDGET_H
 #define START_WIDGET_H
 
-#include <QWidget>
+#include <QWidget>  //窗口
 #include <QPushButton>  //按钮
 #include <QLabel>  //文字标签
 #include <QLineEdit>  //输入框
@@ -34,7 +34,7 @@ private:
     int length;  //窗口的长
     int width;  //窗口的宽
     bool havingSignIn = false;  //是否注册过，即数据库里是否有输入的账号
-    Destination_Recommendation* destinationRecommendation = NULL;
+    Destination_Recommendation* destinationRecommendation = NULL;  //目的地推荐界面
     QLabel* label = NULL;  //标签
     QPushButton* buttonLogOn = NULL;  //登录按钮
     QPushButton* buttonSignIn = NULL;  //注册按钮

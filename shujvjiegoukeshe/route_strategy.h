@@ -1,4 +1,5 @@
-﻿#ifndef ROUTE_STRATEGY_H
+﻿//游学路线规划界面
+#ifndef ROUTE_STRATEGY_H
 #define ROUTE_STRATEGY_H
 
 #include <QWidget>
@@ -16,7 +17,7 @@ class Route_Strategy : public QWidget
 public:
     explicit Route_Strategy(QWidget* parent = nullptr);
     ~Route_Strategy();
-    struct RoadLengthInfo {  //道路(长度)信息
+    struct RoadInfo {  //道路信息
         std::string start;  //起点
         std::string end;  //终点
         int length;  //长度(m)
@@ -45,9 +46,8 @@ private:
     void initWidget();  //界面初始化函数
 
     StringList pointToPointShortestDistance(const std::string& start, const std::string& end,
-                                            const std::vector<RoadLengthInfo>& roads, int& totallength);  //点到点的最短距离
-    std::pair<StringList, int> dijkstra(const std::string& start, const std::string& end, const std::vector<RoadLengthInfo>& roads);
-    bool isValidNode(const std::string& node, const std::vector<RoadLengthInfo>& roads);  // 检查输入的节点是否存在于道路信息中
+                                            const std::vector<RoadInfo>& roads, int& totallength);  //点到点的最短距离
+    std::pair<StringList, int> dijkstra(const std::string& start, const std::string& end, const std::vector<RoadInfo>& roads);
 
     //QStringList pointToPointShortestTime(QString initialLocation,QString destination);  //点到点的最短时间
     //QStringList multiPointShortestDistance(QString initialLocation, QStringList destinations);  //途径多点的最短距离

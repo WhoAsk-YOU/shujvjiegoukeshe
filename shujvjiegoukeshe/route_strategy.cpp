@@ -1,5 +1,5 @@
-﻿#include "route_strategy.h"
-#include <iostream>
+﻿//游学路线规划界面
+#include "route_strategy.h"
 #include <queue>
 
 Route_Strategy::Route_Strategy(QWidget* parent)
@@ -120,7 +120,7 @@ QStringList Route_Strategy::multiPointShortestDistance(QString initialLocation, 
 }
 */
 Route_Strategy::StringList Route_Strategy::pointToPointShortestDistance(const std::string& start, const std::string& end,
-                                                                        const std::vector<RoadLengthInfo>& roads, int& totallength) {
+                                                                        const std::vector<RoadInfo>& roads, int& totallength) {
     std::pair<Route_Strategy::StringList, int> result = dijkstra(start, end, roads);
     Route_Strategy::StringList path = result.first;
     totallength = result.second;
@@ -128,7 +128,7 @@ Route_Strategy::StringList Route_Strategy::pointToPointShortestDistance(const st
 }
 
 std::pair<Route_Strategy::StringList, int> Route_Strategy::dijkstra(const std::string& start, const std::string& end,
-                                                                    const std::vector<RoadLengthInfo>& roads) {
+                                                                    const std::vector<RoadInfo>& roads) {
     //初始化距离和前一个点映射
     std::unordered_map<std::string, int> distances;
     std::unordered_map<std::string, std::string> prev;
@@ -186,7 +186,7 @@ void Route_Strategy::paintEvent(QPaintEvent*) {
 
     int totalLength = 0;  //最短距离
     QSqlQuery query;
-    std::vector<RoadLengthInfo> roadsLengthInfo;  //所有道路(长度)信息
+    std::vector<RoadInfo> roadsLengthInfo;  //所有道路(长度)信息
     StringList path;  //用于存储最终的路径
     std::string initialLocation = boxInitialLocation->currentText().toStdString();  //起始位置
     std::string destination = boxDestination->currentText().toStdString();  //目的地(1个)
@@ -203,9 +203,9 @@ void Route_Strategy::paintEvent(QPaintEvent*) {
         //painter.drawText(400,600,QString("最短时间为：%1s").arg(totalLength));
     }
     else if (buttonShortestDistance->isChecked()) {  //如果选中了最短距离按钮
-        query.exec("select a1.name,a2.name,r.length from t_road r join t_architect a1 on r.start = a1.architect_id join t_architect a2 on r.end = a2.architect_id");
+        query.exec("select a1.name,a2.name,r.length,r.congestion,r.velocity from t_road r join t_architect a1 on r.start = a1.architect_id join t_architect a2 on r.end = a2.architect_id");
         while (query.next()) {  //从数据库中把对应信息存入所有道路(长度)信息
-            RoadLengthInfo roadLengthInfo;
+            RoadInfo roadLengthInfo;
             roadLengthInfo.start = query.value(0).toString().toStdString();
             roadLengthInfo.end = query.value(1).toString().toStdString();
             roadLengthInfo.length = query.value(2).toString().toInt();
