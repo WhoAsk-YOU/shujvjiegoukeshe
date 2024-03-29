@@ -105,12 +105,9 @@ void Route_Strategy::initWidget() {
     lineEditDestinations->setFont(QFont("黑体", 15));
     lineEditDestinations->setPlaceholderText("请输入多个目的地（用空格分隔）");
     lineEditDestinations->setClearButtonEnabled(true);
+    lineEditDestinations->setValidator(new QRegularExpressionValidator(QRegularExpression("[\u4e00-\u9fff\x20]+"), this));  //只允许输入中文及空格
 }
 /*
-QStringList Route_Strategy::pointToPointShortestTime(QString initialLocation,QString destination){
-
-}
-
 QStringList Route_Strategy::multiPointShortestTime(QString initialLocation, QStringList destinations){
 
 }
@@ -121,13 +118,13 @@ QStringList Route_Strategy::multiPointShortestDistance(QString initialLocation, 
 */
 Route_Strategy::StringList Route_Strategy::pointToPointShortestDistance(const std::string& start, const std::string& end,
                                                                         const std::vector<RoadInfo>& roads, int& totallength) {
-    std::pair<Route_Strategy::StringList, int> result = dijkstra(start, end, roads);
-    Route_Strategy::StringList path = result.first;
+    std::pair<StringList, int> result = dijkstraLength(start, end, roads);
+    StringList path = result.first;
     totallength = result.second;
     return path;
 }
 
-std::pair<Route_Strategy::StringList, int> Route_Strategy::dijkstra(const std::string& start, const std::string& end,
+std::pair<Route_Strategy::StringList, int> Route_Strategy::dijkstraLength(const std::string& start, const std::string& end,
                                                                     const std::vector<RoadInfo>& roads) {
     //初始化距离和前一个点映射
     std::unordered_map<std::string, int> distances;
@@ -142,8 +139,7 @@ std::pair<Route_Strategy::StringList, int> Route_Strategy::dijkstra(const std::s
     distances[start] = 0;
     pq.emplace(0, start);
 
-    // 主循环
-    while (!pq.empty()) {
+    while (!pq.empty()) {  //主循环
         int currDist = pq.top().first;
         std::string currNode = pq.top().second;
         pq.pop();
@@ -173,6 +169,63 @@ std::pair<Route_Strategy::StringList, int> Route_Strategy::dijkstra(const std::s
     return { path, totallength };
 }
 
+Route_Strategy::StringList Route_Strategy::pointToPointShortestTime(const std::string& start, const std::string& end,
+                                                                    const std::vector<RoadInfo>& roads, float& totaltime) {
+    std::pair<StringList, float> result = dijkstraTime(start, end, roads);
+    StringList path = result.first;
+    totaltime = result.second;
+    return path;
+}
+
+std::pair<Route_Strategy::StringList, float> Route_Strategy::dijkstraTime(const std::string& start, const std::string& end,
+                                                                          const std::vector<RoadInfo>& roads) {
+    //初始化时间和前一个点映射
+    std::unordered_map<std::string, float> time;
+    std::unordered_map<std::string, std::string> prev;
+    std::priority_queue<std::pair<float, std::string>, std::vector<std::pair<float, std::string>>, std::greater<std::pair<float, std::string>>> pq;
+
+    //为所有节点设置初始距离为正无穷大，除了起点
+    for (const auto& road : roads) {
+        time[road.start] = std::numeric_limits<float>::max();
+        time[road.end] = std::numeric_limits<float>::max();
+    }
+    time[start] = 0;
+    pq.emplace(0, start);
+
+
+    while (!pq.empty()) {  //主循环
+        float currDist = pq.top().first;
+        std::string currNode = pq.top().second;
+        pq.pop();
+
+        if (currDist > time[currNode])  //如果当前距离大于已知最短时间，则跳过
+            continue;
+
+        for (const auto& road : roads) {
+            if (road.start == currNode) {
+                float alt = currDist + road.time;//
+                if (alt < time[road.end]) {
+                    time[road.end] = alt;
+                    prev[road.end] = road.start;
+                    pq.emplace(alt, road.end);
+                }
+            }
+        }
+    }
+    float totaltime = time[end];  //获取最短时间
+
+    // 重建最短路径
+    StringList path;
+    std::string curr = end;
+    while (curr != start) {
+        path.insert(path.begin(), curr);
+        curr = prev[curr];
+    }
+    path.insert(path.begin(), start);
+    return { path, totaltime };
+}
+
+
 void Route_Strategy::paintEvent(QPaintEvent*) {
     if (mode == 0)  //初始化界面时不进行绘制
         return;
@@ -185,8 +238,9 @@ void Route_Strategy::paintEvent(QPaintEvent*) {
     painter.setFont(QFont("黑体", 22));
 
     int totalLength = 0;  //最短距离
+    float totalTime = 0;  //最短时间
     QSqlQuery query;
-    std::vector<RoadInfo> roadsLengthInfo;  //所有道路(长度)信息
+    std::vector<RoadInfo> roadsInfo;  //所有道路信息
     StringList path;  //用于存储最终的路径
     std::string initialLocation = boxInitialLocation->currentText().toStdString();  //起始位置
     std::string destination = boxDestination->currentText().toStdString();  //目的地(1个)
@@ -195,24 +249,30 @@ void Route_Strategy::paintEvent(QPaintEvent*) {
     for (const QString& str : destinationsTmp)
         destinations.push_back(str.toStdString());
 
+    query.exec("select a1.name,a2.name,r.length,r.congestion,r.velocity "
+               "from t_road r join t_architect a1 on r.start = a1.architect_id "
+               "join t_architect a2 on r.end = a2.architect_id");
+    while (query.next()) {  //从数据库中把对应信息存入所有道路信息
+        RoadInfo roadInfo;
+        roadInfo.start = query.value(0).toString().toStdString();
+        roadInfo.end = query.value(1).toString().toStdString();
+        roadInfo.length = query.value(2).toString().toInt();
+        roadInfo.congestion = query.value(3).toString().toFloat();
+        roadInfo.velocity = query.value(4).toString().toFloat();
+        roadInfo.time = roadInfo.length / (roadInfo.congestion * roadInfo.velocity);
+        roadsInfo.push_back(roadInfo);
+    }
+
     if (buttonShortestTime->isChecked()) {  //如果选中了最短时间按钮
-        //if(mode == 1)
-        //answer = pointToPointShortestTime(initialLocation, destination);
-        //else if(mode == 2)
+        if(mode == 1)  //如果查询一个目的地
+            path = pointToPointShortestTime(initialLocation, destination,roadsInfo, totalTime);
+        //else if(mode == 2)  //如果查询多个目的地
         //answer = multiPointShortestTime(initialLocation, destinations);
-        //painter.drawText(400,600,QString("最短时间为：%1s").arg(totalLength));
+        painter.drawText(200,700,QString("最短时间为：%1s").arg(totalTime));
     }
     else if (buttonShortestDistance->isChecked()) {  //如果选中了最短距离按钮
-        query.exec("select a1.name,a2.name,r.length,r.congestion,r.velocity from t_road r join t_architect a1 on r.start = a1.architect_id join t_architect a2 on r.end = a2.architect_id");
-        while (query.next()) {  //从数据库中把对应信息存入所有道路(长度)信息
-            RoadInfo roadLengthInfo;
-            roadLengthInfo.start = query.value(0).toString().toStdString();
-            roadLengthInfo.end = query.value(1).toString().toStdString();
-            roadLengthInfo.length = query.value(2).toString().toInt();
-            roadsLengthInfo.push_back(roadLengthInfo);
-        }
         if (mode == 1)  //如果查询一个目的地
-            path = pointToPointShortestDistance(initialLocation, destination, roadsLengthInfo, totalLength);
+            path = pointToPointShortestDistance(initialLocation, destination, roadsInfo, totalLength);
         //else if(mode == 2)  //如果查询多个目的地
         //answer = multiPointShortestDistance(initialLocation, destinations);
         painter.drawText(200, 700, QString("最短距离为：%1m").arg(totalLength));

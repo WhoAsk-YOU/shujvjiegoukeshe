@@ -10,6 +10,7 @@
 #include <QComboBox>  //下拉框
 #include <QPainter>  //画图
 #include <QLineEdit>
+#include <QRegularExpressionValidator>
 
 class Route_Strategy : public QWidget
 {
@@ -21,6 +22,9 @@ public:
         std::string start;  //起点
         std::string end;  //终点
         int length;  //长度(m)
+        float congestion;  //拥挤度
+        float velocity;  //理想速度
+        float time;  //通行时间
     };
     using StringList = std::vector<std::string>;
 
@@ -47,11 +51,13 @@ private:
 
     StringList pointToPointShortestDistance(const std::string& start, const std::string& end,
                                             const std::vector<RoadInfo>& roads, int& totallength);  //点到点的最短距离
-    std::pair<StringList, int> dijkstra(const std::string& start, const std::string& end, const std::vector<RoadInfo>& roads);
+    std::pair<StringList, int> dijkstraLength(const std::string& start, const std::string& end, const std::vector<RoadInfo>& roads);
 
-    //QStringList pointToPointShortestTime(QString initialLocation,QString destination);  //点到点的最短时间
-    //QStringList multiPointShortestDistance(QString initialLocation, QStringList destinations);  //途径多点的最短距离
-    //QStringList multiPointShortestTime(QString initialLocation, QStringList destinations);  //途径多点的最短时间
+    StringList pointToPointShortestTime(const std::string& start, const std::string& end,
+                                        const std::vector<RoadInfo>& roads, float& totaltime);  //点到点的最短时间
+    std::pair<StringList, float> dijkstraTime(const std::string& start, const std::string& end, const std::vector<RoadInfo>& roads);
+    //StringList multiPointShortestDistance(QString initialLocation, QStringList destinations);  //途径多点的最短距离
+    //StringList multiPointShortestTime(QString initialLocation, QStringList destinations);  //途径多点的最短时间
     void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出路线
 
 };

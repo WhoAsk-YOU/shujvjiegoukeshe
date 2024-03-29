@@ -122,6 +122,7 @@ void Diary_Management::initWidget() {
     lineEditDiaryName->setFont(QFont("黑体", 15));
     lineEditDiaryName->setPlaceholderText("请输入日记名称");
     lineEditDiaryName->setClearButtonEnabled(true);
+    lineEditDiaryName->setValidator(new QRegularExpressionValidator(QRegularExpression("[\u4e00-\u9fff]+"), this));  //搜索日记名只允许输入中文字符
 
     tableDiaryInfo = new QTableWidget(10, 5, this);  //创建10行5列的表格，用于显示日记信息
     tableDiaryInfo->verticalHeader()->setVisible(false);

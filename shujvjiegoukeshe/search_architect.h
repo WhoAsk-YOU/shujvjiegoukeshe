@@ -17,6 +17,11 @@ class Search_Architect : public QWidget
 public:
     explicit Search_Architect(QWidget* parent = nullptr);
     ~Search_Architect();
+    struct RoadLengthInfo {  //道路信息
+        std::string start;  //起点
+        std::string end;  //终点
+        int length;  //距离
+    };
     using StringList = std::vector<std::string>;
 
 signals:
@@ -38,8 +43,9 @@ private:
 
     void initWidget();  //界面初始化函数
     StringList search(const std::string& type, const StringList& allFacilities);  //查找设施类型满足要求的设施名
-    //void sort(QString location, QStringList facilities);
-
+    int dijkstraLength(const std::string& start, const std::string& end, const std::vector<RoadLengthInfo>& roads);
+    std::vector<std::pair<std::string, int>> sortPlacesByDistance(const std::string& currentLocation,const std::string& facilityType,
+                                                                  const StringList& allFacilities,const std::vector<RoadLengthInfo>& roads);
 };
 
 #endif // SEARCH_ARCHITECT_H

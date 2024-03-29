@@ -12,6 +12,7 @@
 #include <QTableWidgetItem>
 #include <QHeaderView>
 #include <QCheckBox>
+#include <QRegularExpressionValidator>
 #include <choose_widget.h>
 
 class Destination_Recommendation : public QWidget

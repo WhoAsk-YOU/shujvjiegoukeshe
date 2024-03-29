@@ -13,6 +13,7 @@
 #include <QTableWidgetItem>
 #include <QHeaderView>
 #include <QLineEdit>
+#include <QRegularExpressionValidator>
 #include <QPainter>
 
 class Diary_Management : public QWidget

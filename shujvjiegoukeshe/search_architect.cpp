@@ -1,6 +1,6 @@
 ﻿//场所查询界面
 #include "search_architect.h"
-#include <iostream>
+#include <queue>
 
 Search_Architect::Search_Architect(QWidget *parent)
     : QWidget{parent}
@@ -91,6 +91,7 @@ void Search_Architect::initWidget(){
 
 Search_Architect::StringList Search_Architect::search(const std::string& type, const StringList& allFacilities) {
     StringList result;
+
     // 如果设施类型为“全部”，直接返回所有设施名称
     if (type == "全部")
         return allFacilities;
@@ -114,32 +115,113 @@ Search_Architect::StringList Search_Architect::search(const std::string& type, c
             }
         }
     }
-
     return result;
 }
-/*
-void Search_Architect::sort(QString location, QStringList facilities){
 
+int Search_Architect::dijkstraLength(const std::string& start, const std::string& end, const std::vector<RoadLengthInfo>& roads){
+    //初始化距离和前一个点映射
+    std::unordered_map<std::string, int> distances;
+    std::unordered_map<std::string, std::string> prev;
+    std::priority_queue<std::pair<int, std::string>, std::vector<std::pair<int, std::string>>, std::greater<std::pair<int, std::string>>> pq;
+
+    //为所有节点设置初始距离为正无穷大，除了起点
+    for (const auto& road : roads) {
+        distances[road.start] = std::numeric_limits<int>::max();
+        distances[road.end] = std::numeric_limits<int>::max();
+    }
+    distances[start] = 0;
+    pq.emplace(0, start);
+
+    while (!pq.empty()) {  //主循环
+        int currDist = pq.top().first;
+        std::string currNode = pq.top().second;
+        pq.pop();
+        if (currDist > distances[currNode])  // 如果当前距离大于已知最短距离，则跳过
+            continue;
+        for (const auto& road : roads) {
+            if (road.start == currNode) {
+                int alt = currDist + road.length;
+                if (alt < distances[road.end]) {
+                    distances[road.end] = alt;
+                    prev[road.end] = road.start;
+                    pq.emplace(alt, road.end);
+                }
+            }
+        }
+    }
+    int totallength = distances[end];  //获取最短距离
+    return totallength;
 }
-*/
+
+std::vector<std::pair<std::string, int>> Search_Architect::sortPlacesByDistance(const std::string& currentLocation,
+                                                                                const std::string& facilityType,
+                                                                                const StringList& allFacilities,
+                                                                                const std::vector<RoadLengthInfo>& roads){
+    std::vector<std::pair<std::string, int>> result;
+
+    //获取当前位置到所有场所的最短距离，并筛选出指定类型的设施
+    std::unordered_map<std::string, int> distanceMap;
+    for (const auto& facility : allFacilities) {
+        if (facility != currentLocation && search(facilityType, { facility }).size() > 0) {
+            int distance = dijkstraLength(currentLocation, facility, roads);
+            distanceMap[facility] = distance;
+        }
+    }
+
+    //实现topk排序
+    std::vector<std::pair<std::string, int>> sortedPlaces;
+    for (const auto& entry : distanceMap)
+        sortedPlaces.push_back(entry);
+
+    //使用选择排序对结果进行排序
+    for (int i = 0; i < std::min(10, static_cast<int>(sortedPlaces.size())); ++i) {
+        int minIndex = i;
+        for (int j = i + 1; j < (int)sortedPlaces.size(); ++j) {
+            if (sortedPlaces[j].second < sortedPlaces[minIndex].second) {
+                minIndex = j;
+            }
+        }
+        std::swap(sortedPlaces[i], sortedPlaces[minIndex]);
+    }
+    return sortedPlaces;
+}
+
 void Search_Architect::showResult(){
     QSqlQuery query;
-    StringList allFacilities, facilities;
-    std::string location = boxLocation->currentText().toStdString();
-    std::string type = boxType->currentText().toStdString();
+    StringList allFacilities;  //所有设施信息
+    std::vector<RoadLengthInfo> roadsInfo;  //所有道路信息
+    std::string location = boxLocation->currentText().toStdString();  //要查询的位置
+    std::string type = boxType->currentText().toStdString();  //要查询的设施
+    std::vector<std::pair<std::string, int>> result;
+
+    for (int i = 0; i < searchTable->rowCount(); i++) {  //清空表中的内容
+        searchTable->setItem(i, 0, new QTableWidgetItem(""));
+        searchTable->setItem(i, 1, new QTableWidgetItem(""));
+    }
+
     query.exec("select name from t_architect order by architect_id limit 20,50");
     while(query.next()){
         std::string name = query.value(0).toString().toStdString();
         allFacilities.push_back(name);
     }
-    facilities = search(type, allFacilities);
 
-    //这里要调用查找和排序函数
+    query.clear();
+    query.exec("select a1.name,a2.name,r.length "
+               "from t_road r join t_architect a1 on r.start = a1.architect_id "
+               "join t_architect a2 on r.end = a2.architect_id");
+    while(query.next()){
+        RoadLengthInfo roadInfo;
+        roadInfo.start = query.value(0).toString().toStdString();
+        roadInfo.end = query.value(1).toString().toStdString();
+        roadInfo.length = query.value(2).toString().toInt();
+        roadsInfo.push_back(roadInfo);
+    }
 
+    result = sortPlacesByDistance(location, type, allFacilities, roadsInfo);
 
-    for(int i = 0; i < searchTable->rowCount(); i++){  //将排序后的数据填入表中
-        QTableWidgetItem* itemName = new QTableWidgetItem("New Data");
-        QTableWidgetItem* itemDistance = new QTableWidgetItem("New value");
+    for(int i = 0; i < searchTable->rowCount() && i < (int)result.size(); i++){  //将排序后的数据填入表中
+        QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(result[i].first));
+        QTableWidgetItem* itemDistance = new QTableWidgetItem(QString::number(result[i].second));
         itemName->setTextAlignment(Qt::AlignCenter);
         itemDistance->setTextAlignment(Qt::AlignCenter);
         searchTable->setItem(i, 0, itemName);

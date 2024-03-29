@@ -117,6 +117,7 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
     lineEditSearch->setPlaceholderText("请输入景区或学校名/关键词");
     lineEditSearch->setClearButtonEnabled(true);
     lineEditSearch->setMaxLength(20);
+    lineEditSearch->setValidator(new QRegularExpressionValidator(QRegularExpression("[\u4e00-\u9fff]+"), this));  //搜索目的地只允许输入中文字符
 
     buttonHeatValue = new QRadioButton("按热度排序", this);
     buttonHeatValue->setChecked(true);  //默认选中按热度排序
