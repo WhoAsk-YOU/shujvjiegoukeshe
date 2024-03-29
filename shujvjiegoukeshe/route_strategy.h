@@ -56,8 +56,12 @@ private:
     StringList pointToPointShortestTime(const std::string& start, const std::string& end,
                                         const std::vector<RoadInfo>& roads, float& totaltime);  //点到点的最短时间
     std::pair<StringList, float> dijkstraTime(const std::string& start, const std::string& end, const std::vector<RoadInfo>& roads);
-    //StringList multiPointShortestDistance(QString initialLocation, QStringList destinations);  //途径多点的最短距离
-    //StringList multiPointShortestTime(QString initialLocation, QStringList destinations);  //途径多点的最短时间
+    /*
+    StringList multiPointShortestDistance(const std::string& initialLocation, const StringList& destinations,
+                                            const std::vector<RoadInfo>& roads, int& totallength);  //途径多点的最短距离
+    StringList multiPointShortestTime(const std::string& initialLocation, const StringList& destinations,
+                                      const std::vector<RoadInfo>& roads, float& totaltime)  //途径多点的最短时间
+    */
     void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出路线
 
 };

@@ -65,9 +65,9 @@ void Destination_Recommendation::showResult() {
     }
 
     if (boxKeyWord->isChecked())  //如果选中了关键词优先
-        SearchedPlaces = placeSearch(place, origin_Places);  //只模糊查找不排序
+        SearchedPlaces = fuzzySearchPlaces(place, origin_Places, 3);
     else  //如果没选中关键词优先
-        SearchedPlaces = sort(placeSearch(place, origin_Places));  //模糊查找后再排序
+        SearchedPlaces = sort(fuzzySearchPlaces(place, origin_Places, 3));  //模糊查找后再排序
 
     for (int i = 0; i < rankingTable->rowCount() && i < (int)SearchedPlaces.size(); i++) {  //将排序后的数据填入表中
         QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(SearchedPlaces[i].name));
@@ -153,12 +153,6 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
     rankingTable->setHorizontalHeaderLabels(horizontalHeaderLabels);
 }
 
-std::vector<Destination_Recommendation::Place> Destination_Recommendation::placeSearch(std::string query, std::vector<Place> spots) {
-    int n = 3; // 生成3-grams  这个n可以更改，但目前来看n=3可以得到最优解
-    if (empty(query))//如果输入为空串，打印所有
-        return spots;
-    return fuzzySearchPlaces(query, spots, n);
-}
 
 std::vector<std::string> Destination_Recommendation::generateNgrams(const std::string& str, int n) {
     std::vector<std::string> ngrams;
@@ -189,6 +183,9 @@ bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& 
 }
 
 std::vector<Destination_Recommendation::Place> Destination_Recommendation::fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n) {
+    if (empty(query))  //如果为空串，直接返回
+        return places;
+
     std::vector<Place> results;
     std::vector<std::string> queryNgrams = generateNgrams(query, n);
 
@@ -204,12 +201,7 @@ std::vector<Destination_Recommendation::Place> Destination_Recommendation::fuzzy
         if (isMatch)
             results.push_back(place);
     }
-
-    // 根据匹配程度对结果进行排序
-    std::sort(results.begin(), results.end(), [&](const Place& a, const Place& b) {
-        return comparePlaceMatch(a, b, queryNgrams);
-    });
-
+    quickSort(results, 0, results.size() - 1, queryNgrams);  //根据匹配程度对结果进行排序
     return results;
 }
 
@@ -217,21 +209,67 @@ bool Destination_Recommendation::compareById(const Place& a, const Place& b) {
     return a.value > b.value;
 }
 
+void Destination_Recommendation::quickSort(std::vector<Place>& arr, int left, int right, const std::vector<std::string>& queryNgrams) {
+    if (left >= right) return;
+    int pivotIndex = partition(arr, left, right, queryNgrams);
+    quickSort(arr, left, pivotIndex - 1, queryNgrams);
+    quickSort(arr, pivotIndex + 1, right, queryNgrams);
+}
+
+int Destination_Recommendation::partition(std::vector<Place>& arr, int left, int right, const std::vector<std::string>& queryNgrams) {
+    Place pivot = arr[right];
+    int i = left - 1;
+
+    for (int j = left; j < right; ++j) {
+        if (comparePlaceMatch(arr[j], pivot, queryNgrams)) {
+            i++;
+            std::swap(arr[i], arr[j]);
+        }
+    }
+    std::swap(arr[i + 1], arr[right]);
+    return i + 1;
+}
+
 std::vector<Destination_Recommendation::Place> Destination_Recommendation::sort(const std::vector<Place>& placeNames) {
-    std::vector<Destination_Recommendation::Place> sortedData(placeNames); // 拷贝数据以便排序
+    std::vector<Place> sortedData(placeNames); // 拷贝数据以便排序
     int size = sortedData.size();
 
-    // 如果数据少于或等于10个，直接对整个向量进行排序
+    //如果数据少于或等于10个，直接对整个向量进行冒泡排序（这里选用冒泡排序是因为它简单且仅处理少量数据）
     if (size <= 10) {
-        std::sort(sortedData.begin(), sortedData.end(), compareById);
-        return sortedData;
+        for (int i = 0; i < size - 1; ++i) {
+            for (int j = 0; j < size - 1 - i; ++j) {
+                if (compareById(sortedData[j + 1], sortedData[j])) {
+                    std::swap(sortedData[j], sortedData[j + 1]);
+                }
+            }
+        }
+    }
+    else {
+        // 找到前10个最大值
+        int maxnum;
+        int maxdata = 0;
+        std::string maxname = sortedData[0].name;
+        for (int i = 0; i < 10; i++)//用选择排序
+        {
+            maxdata = sortedData[i].value;
+            for (int j = i; j < size; j++)
+            {
+                if (maxdata < sortedData[j].value)
+                {
+                    maxdata = sortedData[j].value;
+                    maxname = sortedData[j].name;
+                    maxnum = j;
+                }
+            }
+            sortedData[maxnum].name = sortedData[i].name;
+            sortedData[maxnum].value = sortedData[i].value;
+            sortedData[i].name = maxname;
+            sortedData[i].value = maxdata;
+        }
     }
 
-    // 否则，仅对前10个元素进行排序
-    std::partial_sort(sortedData.begin(), sortedData.begin() + 10, sortedData.end(), compareById);
-
     // 返回前10个已排序的元素
-    return std::vector<Destination_Recommendation::Place>(sortedData.begin(), sortedData.begin() + 10);
+    return std::vector<Place>(sortedData.begin(), sortedData.begin() + std::min(10, size));
 }
 
 void Destination_Recommendation::paintEvent(QPaintEvent*) {

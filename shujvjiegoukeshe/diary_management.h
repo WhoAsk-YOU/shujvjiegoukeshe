@@ -22,6 +22,13 @@ class Diary_Management : public QWidget
 public:
     Diary_Management(QString accountNumber, QString place);
     ~Diary_Management();
+    struct DiaryInfo{  //日记信息
+        std::string diaryName;  //日记名
+        std::string authorAccount;  //作者账户名
+        std::string destination;  //目的地
+        int goodComments;  //好评数
+        int heatValue;  //热度
+    };
 
 signals:
     void chooseback();  //返回信号
@@ -33,8 +40,8 @@ private:
     int length;  //窗口的长
     int width;  //窗口的宽
     int mode;  //若点击了目的地查询按钮,mode=1;若点击了日记名查询按钮,mode=2
-    QString accountNumber;
-    QString place;
+    QString accountNumber;  //当前账户名
+    QString place;  //当前所在景区/学校
     QLabel* labelDestination = NULL;  //游学目的地
     QPushButton* buttonChooseback = NULL;  //返回按钮
     QPushButton* buttonWrite = NULL;  //写日记按钮

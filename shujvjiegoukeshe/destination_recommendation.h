@@ -49,12 +49,13 @@ private:
 
     void initWidget();  //界面初始化函数
 
-    std::vector<Place> placeSearch(std::string query, std::vector<Place> spots);  //查找算法
+    std::vector<Place> fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n);  //查找算法
     std::vector<std::string> generateNgrams(const std::string& str, int n);
     bool comparePlaceMatch(const Place& a, const Place& b, const std::vector<std::string>& queryNgrams);
-    std::vector<Place> fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n);
 
     std::vector<Place> sort(const std::vector<Place>& placeNames);  //排序算法
+    void quickSort(std::vector<Place>& arr, int left, int right, const std::vector<std::string>& queryNgrams);
+    int partition(std::vector<Place>& arr, int left, int right, const std::vector<std::string>& queryNgrams);
     static bool compareById(const Place& a, const Place& b);
 
     void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出当前账户名
