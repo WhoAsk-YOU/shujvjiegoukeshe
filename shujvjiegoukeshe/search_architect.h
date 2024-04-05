@@ -10,6 +10,7 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QHeaderView>
+#include "Structure.h"
 
 class Search_Architect : public QWidget
 {
@@ -17,12 +18,6 @@ class Search_Architect : public QWidget
 public:
     explicit Search_Architect(QWidget* parent = nullptr);
     ~Search_Architect();
-    struct RoadLengthInfo {  //道路信息
-        std::string start;  //起点
-        std::string end;  //终点
-        int length;  //距离
-    };
-    using StringList = std::vector<std::string>;
 
 signals:
     void chooseback();  //返回信号
@@ -31,15 +26,13 @@ private slots:
     void showResult();  //展示查询结果
 
 private:
-    int length;  //窗口的长
-    int width;  //窗口的宽
-    QPushButton* buttonChooseback = NULL;  //返回按钮
-    QComboBox* boxLocation = NULL;  //要查询的建筑
-    QComboBox* boxType = NULL;  //所有设施类型
-    QLabel* labelLocation = NULL;  //查询场所
-    QLabel* labelType = NULL;  //设施类型
-    QPushButton* buttonSearch = NULL;  //查询按钮
-    QTableWidget* searchTable = NULL;  //距离表格
+    QPushButton* buttonChoosebackSA = NULL;  //返回按钮
+    QComboBox* boxLocationSA = NULL;  //要查询的建筑
+    QComboBox* boxTypeSA = NULL;  //所有设施类型
+    QLabel* labelLocationSA = NULL;  //查询场所
+    QLabel* labelTypeSA = NULL;  //设施类型
+    QPushButton* buttonSearchSA = NULL;  //查询按钮
+    QTableWidget* searchTableSA = NULL;  //距离表格
 
     void initWidget();  //界面初始化函数
     StringList search(const std::string& type, const StringList& allFacilities);  //查找设施类型满足要求的设施名

@@ -6,45 +6,45 @@ Diary_Management::Diary_Management(QString accountNumber, QString place)
     this->accountNumber = accountNumber;
     this->place = place;
     initWidget();
-    connect(buttonChooseback, &QPushButton::clicked, [=]() {  //若点击返回按钮
+    connect(buttonChoosebackDM, &QPushButton::clicked, [=]() {  //若点击返回按钮
         emit this->chooseback();  //发出返回选择界面的信号
     });
-    connect(buttonQueryDestination, &QPushButton::clicked, [=]() {  //若点击目的地查询按钮
+    connect(buttonQueryDestinationDM, &QPushButton::clicked, [=]() {  //若点击目的地查询按钮
         mode = 1;
         showResult();
     });
-    connect(buttonQueryDiaryName, &QPushButton::clicked, [=]() {  //若点击日记名查询按钮
+    connect(buttonQueryDiaryNameDM, &QPushButton::clicked, [=]() {  //若点击日记名查询按钮
         mode = 2;
         showResult();
     });
 }
 
 Diary_Management::~Diary_Management() {
-    delete labelDestination;
-    labelDestination = NULL;
-    delete buttonChooseback;
-    buttonChooseback = NULL;
-    delete buttonWrite;
-    buttonWrite = NULL;
-    delete buttonHeatValue;
-    buttonHeatValue = NULL;
-    delete buttonGoodComments;
-    buttonGoodComments = NULL;
-    delete buttonQueryDestination;
-    buttonQueryDestination = NULL;
-    delete buttonQueryDiaryName;
-    buttonQueryDiaryName = NULL;
-    delete boxDestination;
-    boxDestination = NULL;
-    delete lineEditDiaryName;
-    lineEditDiaryName = NULL;
-    delete tableDiaryInfo;
-    tableDiaryInfo = NULL;
+    delete labelDestinationDM;
+    labelDestinationDM = NULL;
+    delete buttonChoosebackDM;
+    buttonChoosebackDM = NULL;
+    delete buttonWriteDM;
+    buttonWriteDM = NULL;
+    delete buttonHeatValueDM;
+    buttonHeatValueDM = NULL;
+    delete buttonGoodCommentsDM;
+    buttonGoodCommentsDM = NULL;
+    delete buttonQueryDestinationDM;
+    buttonQueryDestinationDM = NULL;
+    delete buttonQueryDiaryNameDM;
+    buttonQueryDiaryNameDM = NULL;
+    delete boxDestinationDM;
+    boxDestinationDM = NULL;
+    delete lineEditDiaryNameDM;
+    lineEditDiaryNameDM = NULL;
+    delete tableDiaryInfoDM;
+    tableDiaryInfoDM = NULL;
 }
 
 void Diary_Management::showResult() {
-    std::string destination = boxDestination->currentText().toStdString();
-    std::string diaryName = lineEditDiaryName->text().toStdString();
+    std::string destination = boxDestinationDM->currentText().toStdString();
+    std::string diaryName = lineEditDiaryNameDM->text().toStdString();
     QSqlQuery query;
 
     /*
@@ -60,7 +60,7 @@ void Diary_Management::showResult() {
         else if(mode == 2)
     }
     */
-    for (int i = 0; i < tableDiaryInfo->rowCount(); i++) {
+    for (int i = 0; i < tableDiaryInfoDM->rowCount(); i++) {
         QTableWidgetItem* itemName = new QTableWidgetItem("New Data");
         QTableWidgetItem* itemAccountNumber = new QTableWidgetItem("New value");
         QTableWidgetItem* itemDestination = new QTableWidgetItem("New value");
@@ -71,85 +71,83 @@ void Diary_Management::showResult() {
         itemDestination->setTextAlignment(Qt::AlignCenter);
         itemHeatValue->setTextAlignment(Qt::AlignCenter);
         itemGoodComments->setTextAlignment(Qt::AlignCenter);
-        tableDiaryInfo->setItem(i, 0, itemName);
-        tableDiaryInfo->setItem(i, 1, itemAccountNumber);
-        tableDiaryInfo->setItem(i, 2, itemDestination);
-        tableDiaryInfo->setItem(i, 3, itemHeatValue);
-        tableDiaryInfo->setItem(i, 4, itemGoodComments);
+        tableDiaryInfoDM->setItem(i, 0, itemName);
+        tableDiaryInfoDM->setItem(i, 1, itemAccountNumber);
+        tableDiaryInfoDM->setItem(i, 2, itemDestination);
+        tableDiaryInfoDM->setItem(i, 3, itemHeatValue);
+        tableDiaryInfoDM->setItem(i, 4, itemGoodComments);
     }
 }
 
 void Diary_Management::initWidget() {
     QStringList horizontalHeaderLabels;
     QSqlQuery query;
-    length = 1400;
-    width = 950;
     setWindowTitle("学生游学系统");
-    setFixedSize(length, width);
+    setFixedSize(LENGTH, WIDTH);
 
-    labelDestination = new QLabel("游学目的地：", this);
-    labelDestination->setGeometry(300, 150, 200, 45);
-    labelDestination->setAlignment(Qt::AlignCenter);
-    labelDestination->setStyleSheet("QLabel{font:24px;}");
+    labelDestinationDM = new QLabel("游学目的地：", this);
+    labelDestinationDM->setGeometry(300, 150, 200, 45);
+    labelDestinationDM->setAlignment(Qt::AlignCenter);
+    labelDestinationDM->setStyleSheet("QLabel{font:24px;}");
 
-    buttonChooseback = new QPushButton("返回", this);
-    buttonChooseback->move(0, width * 8 / 9);
-    buttonChooseback->resize(length / 9, width / 9);
-    buttonChooseback->setFont(QFont("黑体", 25));
-    buttonWrite = new QPushButton("写日记", this);
-    buttonWrite->move(length * 8 / 9, width * 8 / 9);
-    buttonWrite->resize(length / 9, width / 9);
-    buttonWrite->setFont(QFont("黑体", 25));
-    buttonQueryDestination = new QPushButton("查询", this);
-    buttonQueryDestination->move(870, 150);
-    buttonQueryDestination->resize(80, 45);
-    buttonQueryDestination->setFont(QFont("黑体", 20));
-    buttonQueryDiaryName = new QPushButton("查询", this);
-    buttonQueryDiaryName->move(870, 230);
-    buttonQueryDiaryName->resize(80, 45);
-    buttonQueryDiaryName->setFont(QFont("黑体", 20));
+    buttonChoosebackDM = new QPushButton("返回", this);
+    buttonChoosebackDM->move(0, WIDTH * 8 / 9);
+    buttonChoosebackDM->resize(LENGTH / 9, WIDTH / 9);
+    buttonChoosebackDM->setFont(QFont("黑体", 25));
+    buttonWriteDM = new QPushButton("写日记", this);
+    buttonWriteDM->move(LENGTH * 8 / 9, WIDTH * 8 / 9);
+    buttonWriteDM->resize(LENGTH / 9, WIDTH / 9);
+    buttonWriteDM->setFont(QFont("黑体", 25));
+    buttonQueryDestinationDM = new QPushButton("查询", this);
+    buttonQueryDestinationDM->move(870, 150);
+    buttonQueryDestinationDM->resize(80, 45);
+    buttonQueryDestinationDM->setFont(QFont("黑体", 20));
+    buttonQueryDiaryNameDM = new QPushButton("查询", this);
+    buttonQueryDiaryNameDM->move(870, 230);
+    buttonQueryDiaryNameDM->resize(80, 45);
+    buttonQueryDiaryNameDM->setFont(QFont("黑体", 20));
 
-    buttonHeatValue = new QRadioButton("按热度排序", this);
-    buttonHeatValue->setChecked(true);
-    buttonHeatValue->move(1000, 190);
-    buttonHeatValue->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
-    buttonGoodComments = new QRadioButton("按评价排序", this);
-    buttonGoodComments->move(1000, 220);
-    buttonGoodComments->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
+    buttonHeatValueDM = new QRadioButton("按热度排序", this);
+    buttonHeatValueDM->setChecked(true);
+    buttonHeatValueDM->move(1000, 190);
+    buttonHeatValueDM->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
+    buttonGoodCommentsDM = new QRadioButton("按评价排序", this);
+    buttonGoodCommentsDM->move(1000, 220);
+    buttonGoodCommentsDM->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
 
-    lineEditDiaryName = new QLineEdit(this);
-    lineEditDiaryName->setGeometry(320, width * 3 / 19 + 75, 450, width / 17);
-    lineEditDiaryName->setFont(QFont("黑体", 15));
-    lineEditDiaryName->setPlaceholderText("请输入日记名称");
-    lineEditDiaryName->setClearButtonEnabled(true);
-    lineEditDiaryName->setValidator(new QRegularExpressionValidator(QRegularExpression("[\u4e00-\u9fff]+"), this));  //搜索日记名只允许输入中文字符
+    lineEditDiaryNameDM = new QLineEdit(this);
+    lineEditDiaryNameDM->setGeometry(320, WIDTH * 3 / 19 + 75, 450, WIDTH / 17);
+    lineEditDiaryNameDM->setFont(QFont("黑体", 15));
+    lineEditDiaryNameDM->setPlaceholderText("请输入日记名称");
+    lineEditDiaryNameDM->setClearButtonEnabled(true);
+    lineEditDiaryNameDM->setValidator(new QRegularExpressionValidator(QRegularExpression("[\u4e00-\u9fff]+"), this));  //搜索日记名只允许输入中文字符
 
-    tableDiaryInfo = new QTableWidget(10, 5, this);  //创建10行5列的表格，用于显示日记信息
-    tableDiaryInfo->verticalHeader()->setVisible(false);
-    tableDiaryInfo->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    tableDiaryInfo->move(224, 350);
-    tableDiaryInfo->resize(952, 492);
-    tableDiaryInfo->setFont(QFont("黑体", 14));
-    tableDiaryInfo->horizontalHeader()->setMinimumHeight(40);
-    for (int i = 0; i < tableDiaryInfo->rowCount(); i++)
-        tableDiaryInfo->setRowHeight(i, 45);
-    tableDiaryInfo->setColumnWidth(0, 250);
-    tableDiaryInfo->setColumnWidth(1, 250);
-    tableDiaryInfo->setColumnWidth(2, 250);
-    tableDiaryInfo->setColumnWidth(3, 100);
-    tableDiaryInfo->setColumnWidth(4, 100);
+    tableDiaryInfoDM = new QTableWidget(10, 5, this);  //创建10行5列的表格，用于显示日记信息
+    tableDiaryInfoDM->verticalHeader()->setVisible(false);
+    tableDiaryInfoDM->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tableDiaryInfoDM->move(224, 350);
+    tableDiaryInfoDM->resize(952, 492);
+    tableDiaryInfoDM->setFont(QFont("黑体", 14));
+    tableDiaryInfoDM->horizontalHeader()->setMinimumHeight(40);
+    for (int i = 0; i < tableDiaryInfoDM->rowCount(); i++)
+        tableDiaryInfoDM->setRowHeight(i, 45);
+    tableDiaryInfoDM->setColumnWidth(0, 250);
+    tableDiaryInfoDM->setColumnWidth(1, 250);
+    tableDiaryInfoDM->setColumnWidth(2, 250);
+    tableDiaryInfoDM->setColumnWidth(3, 100);
+    tableDiaryInfoDM->setColumnWidth(4, 100);
     horizontalHeaderLabels << "日记名称" << "作者账户名" << "目的地" << "热度" << "好评数";
-    tableDiaryInfo->setHorizontalHeaderLabels(horizontalHeaderLabels);
+    tableDiaryInfoDM->setHorizontalHeaderLabels(horizontalHeaderLabels);
 
-    boxDestination = new QComboBox(this);
-    boxDestination->move(490, 150);
-    boxDestination->resize(280, 45);
-    boxDestination->setFont(QFont("黑体", 17));
-    boxDestination->addItem("全部");
+    boxDestinationDM = new QComboBox(this);
+    boxDestinationDM->move(490, 150);
+    boxDestinationDM->resize(280, 45);
+    boxDestinationDM->setFont(QFont("黑体", 17));
+    boxDestinationDM->addItem("全部");
     query.exec("select name from t_place_ranking");
     while (query.next()) {
         QString name = query.value(0).toString();
-        boxDestination->addItem(name);
+        boxDestinationDM->addItem(name);
     }
 }
 

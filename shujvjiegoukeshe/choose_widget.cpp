@@ -71,26 +71,24 @@ void Choose_Widget::clickRoute() {
 }
 
 void Choose_Widget::initWidget() {
-    length = 1400;
-    width = 950;
     setWindowTitle("学生游学系统");
-    setFixedSize(length, width);
+    setFixedSize(LENGTH, WIDTH);
 
     buttonSearchArchitect = new QPushButton("场所查询", this);
-    buttonSearchArchitect->move(length / 3, width / 4 - 50);
-    buttonSearchArchitect->resize(length / 3, width / 9);
+    buttonSearchArchitect->move(LENGTH / 3, WIDTH / 4 - 50);
+    buttonSearchArchitect->resize(LENGTH / 3, WIDTH / 9);
     buttonSearchArchitect->setFont(QFont("黑体", 25));
     buttonDiary = new QPushButton("游学日记管理", this);
-    buttonDiary->move(length / 3, width / 2 - 50);
-    buttonDiary->resize(length / 3, width / 9);
+    buttonDiary->move(LENGTH / 3, WIDTH / 2 - 50);
+    buttonDiary->resize(LENGTH / 3, WIDTH / 9);
     buttonDiary->setFont(QFont("黑体", 25));
     buttonRoute = new QPushButton("游学路线规划", this);
-    buttonRoute->move(length / 3, width * 3 / 4 - 50);
-    buttonRoute->resize(length / 3, width / 9);
+    buttonRoute->move(LENGTH / 3, WIDTH * 3 / 4 - 50);
+    buttonRoute->resize(LENGTH / 3, WIDTH / 9);
     buttonRoute->setFont(QFont("黑体", 25));
     buttonChooseback = new QPushButton("返回", this);
-    buttonChooseback->move(0, width * 8 / 9);
-    buttonChooseback->resize(length / 9, width / 9);
+    buttonChooseback->move(0, WIDTH * 8 / 9);
+    buttonChooseback->resize(LENGTH / 9, WIDTH / 9);
     buttonChooseback->setFont(QFont("黑体", 25));
 }
 

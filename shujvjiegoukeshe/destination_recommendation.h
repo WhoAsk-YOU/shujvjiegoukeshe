@@ -13,16 +13,12 @@
 #include <QHeaderView>
 #include <QCheckBox>
 #include <QRegularExpressionValidator>
-#include <choose_widget.h>
+#include "choose_widget.h"
 
 class Destination_Recommendation : public QWidget
 {
     Q_OBJECT
 public:
-    struct Place {  //景区/学校信息
-        std::string name;  //景区或学校名
-        int value;  //景区或学校对应的热度值/好评数
-    };
     Destination_Recommendation(QString accountNumber);  //带参构造：参数为账号名
     ~Destination_Recommendation();
 
@@ -34,18 +30,16 @@ private slots:
     void tableClicked(int row, int column);  //若点击了表格中的第二列，则根据选中的景区/学校名进入下一个界面
 
 private:
-    int length;  //窗口的长
-    int width;  //窗口的宽
     bool flag = false;  //用于判断表格里是否显示数据
     QString accountNumber;  //当前账户名
     Choose_Widget* chooseWidget = NULL;  //游学路线规划、场所查询、游学日记管理选择界面
-    QPushButton* buttonExit = NULL;  //退出按钮
-    QPushButton* buttonSearch = NULL;  //搜索按钮
-    QLineEdit* lineEditSearch = NULL;  //景区/学校输入框
-    QRadioButton* buttonHeatValue = NULL;  //按热度排序
-    QRadioButton* buttonGoodComments = NULL;  //按评价排序
-    QCheckBox* boxKeyWord = NULL;  //是否关键词优先
-    QTableWidget* rankingTable = NULL;  //排名表格
+    QPushButton* buttonExitDR = NULL;  //退出按钮
+    QPushButton* buttonSearchDR = NULL;  //搜索按钮
+    QLineEdit* lineEditSearchDR = NULL;  //景区/学校输入框
+    QRadioButton* buttonHeatValueDR = NULL;  //按热度排序
+    QRadioButton* buttonGoodCommentsDR = NULL;  //按评价排序
+    QCheckBox* boxKeyWordDR = NULL;  //是否关键词优先
+    QTableWidget* rankingTableDR = NULL;  //排名表格
 
     void initWidget();  //界面初始化函数
 

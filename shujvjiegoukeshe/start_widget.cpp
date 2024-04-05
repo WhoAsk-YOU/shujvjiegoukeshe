@@ -17,8 +17,8 @@ Start_widget::Start_widget(QWidget* parent)
 }
 
 Start_widget::~Start_widget() {  //析构函数，释放空间
-    delete label;
-    label = NULL;
+    delete labelTitle;
+    labelTitle = NULL;
     delete buttonLogOn;
     buttonLogOn = NULL;
     delete buttonSignIn;
@@ -31,34 +31,32 @@ Start_widget::~Start_widget() {  //析构函数，释放空间
 }
 
 void Start_widget::initWidget() {  //初始化开始界面
-    length = 1400;
-    width = 950;
     setWindowTitle("学生游学系统");
-    setFixedSize(length, width);
+    setFixedSize(LENGTH, WIDTH);
 
-    label = new QLabel("学生游学系统", this);
-    label->setGeometry(length / 3, width / 17, length / 3, width / 4);  //设置文本框位置及大小
-    label->setAlignment(Qt::AlignCenter);  //文本框内容居中显示
-    label->setStyleSheet("QLabel{font:50px;}");  //设置文本框字体
+    labelTitle = new QLabel("学生游学系统", this);
+    labelTitle->setGeometry(LENGTH / 3, WIDTH / 17, LENGTH / 3, WIDTH / 4);  //设置文本框位置及大小
+    labelTitle->setAlignment(Qt::AlignCenter);  //文本框内容居中显示
+    labelTitle->setStyleSheet("QLabel{font:50px;}");  //设置文本框字体
 
     buttonLogOn = new QPushButton("登录", this);
-    buttonLogOn->move(length / 3, width * 5 / 7);  //改变按钮位置
-    buttonLogOn->resize(length / 9, width / 9);  //改变按钮大小
+    buttonLogOn->move(LENGTH / 3, WIDTH * 5 / 7);  //改变按钮位置
+    buttonLogOn->resize(LENGTH / 9, WIDTH / 9);  //改变按钮大小
     buttonLogOn->setFont(QFont("黑体", 25));  //设置按钮字体
     buttonSignIn = new QPushButton("注册", this);
-    buttonSignIn->move(length - length / 3 - length / 9, width * 5 / 7);
-    buttonSignIn->resize(length / 9, width / 9);
+    buttonSignIn->move(LENGTH - LENGTH / 3 - LENGTH / 9, WIDTH * 5 / 7);
+    buttonSignIn->resize(LENGTH / 9, WIDTH / 9);
     buttonSignIn->setFont(QFont("黑体", 25));
 
     lineEditAccountNumber = new QLineEdit(this);
-    lineEditAccountNumber->setGeometry(length / 2 - length / 7, width * 7 / 19, length / 3.5, width / 17);  //设置输入框位置及大小
+    lineEditAccountNumber->setGeometry(LENGTH / 2 - LENGTH / 7, WIDTH * 7 / 19, LENGTH / 3.5, WIDTH / 17);  //设置输入框位置及大小
     lineEditAccountNumber->setFont(QFont("黑体", 15));  //设置输入框字体
     lineEditAccountNumber->setPlaceholderText("请输入账号");  //设置输入框默认显示内容
     lineEditAccountNumber->setClearButtonEnabled(true);  //一键清除功能开启
     lineEditAccountNumber->setMaxLength(10);  //账号最多10位，超过了输不进去
     lineEditAccountNumber->setValidator(new QRegularExpressionValidator(QRegularExpression("\\d+"), this));  //账号只能由数字组成，其他的输不进去
     lineEditPassword = new QLineEdit(this);
-    lineEditPassword->setGeometry(length / 2 - length / 7, width * 10 / 19, length / 3.5, width / 17);
+    lineEditPassword->setGeometry(LENGTH / 2 - LENGTH / 7, WIDTH * 10 / 19, LENGTH / 3.5, WIDTH / 17);
     lineEditPassword->setFont(QFont("黑体", 15));
     lineEditPassword->setPlaceholderText("请输入密码");
     lineEditPassword->setClearButtonEnabled(true);

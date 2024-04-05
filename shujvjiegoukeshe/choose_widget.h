@@ -25,8 +25,6 @@ private slots:
     void clickRoute();
 
 private:
-    int length;  //窗口的长
-    int width;  //窗口的宽
     QString accountNumber;
     QString place;
     Route_Strategy* routeStrategy = NULL;

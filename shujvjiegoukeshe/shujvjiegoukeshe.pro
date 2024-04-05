@@ -18,6 +18,7 @@ SOURCES += \
     start_widget.cpp
 
 HEADERS += \
+    Structure.h \
     choose_widget.h \
     destination_recommendation.h \
     diary_management.h \
