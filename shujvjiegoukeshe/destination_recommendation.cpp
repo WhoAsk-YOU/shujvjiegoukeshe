@@ -1,5 +1,6 @@
 ﻿//目的地推荐界面
 #include "destination_recommendation.h"
+
 Destination_Recommendation::Destination_Recommendation(QString accountNumber)
 {
     this->accountNumber = accountNumber;
@@ -8,12 +9,10 @@ Destination_Recommendation::Destination_Recommendation(QString accountNumber)
         emit this->chooseback();  //发出返回开始界面的信号
     });
     connect(buttonSearchDR, &QPushButton::clicked, [=]() {  //若点击搜索按钮
-        flag = true;
         showResult();  //表格会显示数据
     });
     connect(rankingTableDR, &QTableWidget::cellClicked, [=](int row, int column) {  //若点击表格第二列中的某个单元格
-        if (flag == true)  //如果表格里内容不为空
-            tableClicked(row, column);  //跳转到选择界面
+        tableClicked(row, column);  //跳转到选择界面
     });
 }
 
@@ -38,8 +37,8 @@ void Destination_Recommendation::showResult() {
     QSqlQuery query;
     QStringList horizontalHeaderLabels;
     Place spots[200];  //结构数组，储存景区/学校名以及对应的热度/好评数
-    std::vector<Place> origin_Places, SearchedPlaces;  //把数组放进向量里，统一PlaceSearch函数返回值格式
-    std::string place = lineEditSearchDR->text().toStdString();
+    vector<Place> origin_Places, SearchedPlaces;  //把数组放进向量里，统一PlaceSearch函数返回值格式
+    string place = lineEditSearchDR->text().toStdString();
 
     for (int i = 0; i < rankingTableDR->rowCount(); i++) {  //清空表中的内容
         rankingTableDR->setItem(i, 1, new QTableWidgetItem(""));
@@ -64,11 +63,12 @@ void Destination_Recommendation::showResult() {
     }
 
     if (boxKeyWordDR->isChecked())  //如果选中了关键词优先
-        SearchedPlaces = fuzzySearchPlaces(place, origin_Places, 3);
+        SearchedPlaces = fuzzySearchPlaces(place, origin_Places, 4);
     else  //如果没选中关键词优先
-        SearchedPlaces = sort(fuzzySearchPlaces(place, origin_Places, 3));  //模糊查找后再排序
+        SearchedPlaces = sort(fuzzySearchPlaces(place, origin_Places, 4));  //模糊查找后再排序
 
-    for (int i = 0; i < rankingTableDR->rowCount() && i < (int)SearchedPlaces.size(); i++) {  //将排序后的数据填入表中
+
+    for (int i = 0; i < min(rankingTableDR->rowCount(),(int)SearchedPlaces.size()); i++) {  //将排序后的数据填入表中
         QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(SearchedPlaces[i].name));
         QTableWidgetItem* itemValue = new QTableWidgetItem(QString::number(SearchedPlaces[i].value));
         itemName->setTextAlignment(Qt::AlignCenter);
@@ -80,6 +80,8 @@ void Destination_Recommendation::showResult() {
 
 void Destination_Recommendation::tableClicked(int row, int column) {
     if (column == 1) {
+        if (rankingTableDR->item(row, column)->text().isEmpty())
+            return;
         QTableWidgetItem* item = rankingTableDR->item(row, column);  //获取到点击单元格的内容，即景区/学校名
         this->hide();  //隐藏目的地推荐界面
         chooseWidget = new Choose_Widget(accountNumber, item->text());
@@ -104,12 +106,12 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
     buttonExitDR->resize(LENGTH / 9, WIDTH / 9);
     buttonExitDR->setFont(QFont("黑体", 25));
     buttonSearchDR = new QPushButton("搜索", this);
-    buttonSearchDR->move(LENGTH / 2 + LENGTH / 7, WIDTH * 3 / 19);
+    buttonSearchDR->move(LENGTH / 2 + LENGTH / 7 -30, WIDTH * 3 / 19);
     buttonSearchDR->resize(LENGTH / 17, WIDTH / 17);
     buttonSearchDR->setFont(QFont("黑体", 21));
 
     lineEditSearchDR = new QLineEdit(this);
-    lineEditSearchDR->setGeometry(LENGTH / 2 - LENGTH / 7, WIDTH * 3 / 19, LENGTH / 3.5, WIDTH / 17);
+    lineEditSearchDR->setGeometry(LENGTH / 2 - LENGTH / 7 -30, WIDTH * 3 / 19, LENGTH / 3.5, WIDTH / 17);
     lineEditSearchDR->setFont(QFont("黑体", 15));
     lineEditSearchDR->setPlaceholderText("请输入景区或学校名/关键词");
     lineEditSearchDR->setClearButtonEnabled(true);
@@ -118,20 +120,20 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
 
     buttonHeatValueDR = new QRadioButton("按热度排序", this);
     buttonHeatValueDR->setChecked(true);  //默认选中按热度排序
-    buttonHeatValueDR->move(500, 230);
+    buttonHeatValueDR->move(480, 230);
     buttonHeatValueDR->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");  //设置按钮大小及字体大小
     buttonGoodCommentsDR = new QRadioButton("按评价排序", this);
-    buttonGoodCommentsDR->move(650, 230);
+    buttonGoodCommentsDR->move(630, 230);
     buttonGoodCommentsDR->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
 
     boxKeyWordDR = new QCheckBox("关键词优先", this);
-    boxKeyWordDR->setGeometry(800, 211, 100, 60);
+    boxKeyWordDR->setGeometry(780, 211, 100, 60);
     boxKeyWordDR->setFont(QFont("黑体", 12));
 
     rankingTableDR = new QTableWidget(10, 3, this);  //创建10行3列的表格，用于显示景区/学校排名
     rankingTableDR->verticalHeader()->setVisible(false);  //隐藏垂直表头
     rankingTableDR->setEditTriggers(QAbstractItemView::NoEditTriggers);  //表格内的数据不允许修改
-    rankingTableDR->move(LENGTH / 2 - 255, 300);
+    rankingTableDR->move(LENGTH / 2 - 285, 300);
     rankingTableDR->resize(572, 492);
     rankingTableDR->setFont(QFont("黑体", 18));
     rankingTableDR->horizontalHeader()->setMinimumHeight(40);
@@ -139,6 +141,8 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
         QTableWidgetItem* item = new QTableWidgetItem(QString::number(i + 1));
         item->setTextAlignment(Qt::AlignCenter);  //文本居中对齐
         rankingTableDR->setItem(i, 0, item);
+        rankingTableDR->setItem(i, 1, new QTableWidgetItem(""));
+        rankingTableDR->setItem(i, 2, new QTableWidgetItem(""));
     }
     for (int i = 0; i < rankingTableDR->rowCount(); i++)  //设置每一行的高度为45像素
         rankingTableDR->setRowHeight(i, 45);
@@ -150,47 +154,18 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
     rankingTableDR->setHorizontalHeaderLabels(horizontalHeaderLabels);
 }
 
-
-std::vector<std::string> Destination_Recommendation::generateNgrams(const std::string& str, int n) {
-    std::vector<std::string> ngrams;
-    for (size_t i = 0; i <= str.length() - n; ++i)
-        ngrams.push_back(str.substr(i, n));
-    return ngrams;
-}
-
-bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& b, const std::vector<std::string>& queryNgrams) {
-    std::vector<std::string> aNgrams = generateNgrams(a.name, 3);
-    std::vector<std::string> bNgrams = generateNgrams(b.name, 3);
-
-    int aMatches = 0;
-    int bMatches = 0;
-    for (const auto& queryNgram : queryNgrams) {
-        if (std::find(aNgrams.begin(), aNgrams.end(), queryNgram) != aNgrams.end())
-            ++aMatches;
-        if (std::find(bNgrams.begin(), bNgrams.end(), queryNgram) != bNgrams.end())
-            ++bMatches;
-    }
-
-    // 如果匹配数量相同，则按字母顺序排序
-    if (aMatches == bMatches)
-        return a.name < b.name;
-
-    // 返回匹配数量多的地名在前
-    return aMatches > bMatches;
-}
-
-std::vector<Place> Destination_Recommendation::fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n) {
+vector<Place> Destination_Recommendation::fuzzySearchPlaces(const string& query, const vector<Place>& places, int n) {
     if (empty(query))  //如果为空串，直接返回
         return places;
 
-    std::vector<Place> results;
-    std::vector<std::string> queryNgrams = generateNgrams(query, n);
+    vector<Place> results;
+    StringList queryNgrams = generateNgrams(query, n);
 
     for (const auto& place : places) {
-        std::vector<std::string> placeNgrams = generateNgrams(place.name, n);
+        StringList placeNgrams = generateNgrams(place.name, n);
         bool isMatch = false;
         for (const auto& queryNgram : queryNgrams) {
-            if (std::find(placeNgrams.begin(), placeNgrams.end(), queryNgram) != placeNgrams.end()) {
+            if (::find(placeNgrams.begin(), placeNgrams.end(), queryNgram) != placeNgrams.end()) {
                 isMatch = true;
                 break;
             }
@@ -202,51 +177,73 @@ std::vector<Place> Destination_Recommendation::fuzzySearchPlaces(const std::stri
     return results;
 }
 
+StringList Destination_Recommendation::generateNgrams(const string& str, int n) {
+    StringList ngrams;
+    for (size_t i = 0; i <= str.length() - n; ++i)
+        ngrams.push_back(str.substr(i, n));
+    return ngrams;
+}
+
+bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& b, const StringList& queryNgrams) {
+    StringList aNgrams = generateNgrams(a.name, 3);
+    StringList bNgrams = generateNgrams(b.name, 3);
+
+    int aMatches = 0;
+    int bMatches = 0;
+    for (const auto& queryNgram : queryNgrams) {
+        if (::find(aNgrams.begin(), aNgrams.end(), queryNgram) != aNgrams.end())
+            ++aMatches;
+        if (::find(bNgrams.begin(), bNgrams.end(), queryNgram) != bNgrams.end())
+            ++bMatches;
+    }
+    if (aMatches == bMatches)  //如果匹配数量相同，则按字母顺序排序
+        return a.name < b.name;
+    return aMatches > bMatches;  //返回匹配数量多的地名在前
+}
+
 bool Destination_Recommendation::compareById(const Place& a, const Place& b) {
     return a.value > b.value;
 }
 
-void Destination_Recommendation::quickSort(std::vector<Place>& arr, int left, int right, const std::vector<std::string>& queryNgrams) {
+void Destination_Recommendation::quickSort(vector<Place>& arr, int left, int right, const StringList& queryNgrams) {
     if (left >= right) return;
     int pivotIndex = partition(arr, left, right, queryNgrams);
     quickSort(arr, left, pivotIndex - 1, queryNgrams);
     quickSort(arr, pivotIndex + 1, right, queryNgrams);
 }
 
-int Destination_Recommendation::partition(std::vector<Place>& arr, int left, int right, const std::vector<std::string>& queryNgrams) {
+int Destination_Recommendation::partition(vector<Place>& arr, int left, int right, const StringList& queryNgrams) {
     Place pivot = arr[right];
     int i = left - 1;
 
     for (int j = left; j < right; ++j) {
         if (comparePlaceMatch(arr[j], pivot, queryNgrams)) {
             i++;
-            std::swap(arr[i], arr[j]);
+            swap(arr[i], arr[j]);
         }
     }
-    std::swap(arr[i + 1], arr[right]);
+    swap(arr[i + 1], arr[right]);
     return i + 1;
 }
 
-std::vector<Place> Destination_Recommendation::sort(const std::vector<Place>& placeNames) {
-    std::vector<Place> sortedData(placeNames); // 拷贝数据以便排序
+vector<Place> Destination_Recommendation::sort(const vector<Place>& placeNames) {
+    vector<Place> sortedData(placeNames);  //拷贝数据以便排序
     int size = sortedData.size();
-
-    //如果数据少于或等于10个，直接对整个向量进行冒泡排序（这里选用冒泡排序是因为它简单且仅处理少量数据）
-    if (size <= 10) {
+    if (size <= 10) {  //如果数据少于或等于10个，直接对整个向量进行冒泡排序（这里选用冒泡排序是因为它简单且仅处理少量数据）
         for (int i = 0; i < size - 1; ++i) {
             for (int j = 0; j < size - 1 - i; ++j) {
                 if (compareById(sortedData[j + 1], sortedData[j])) {
-                    std::swap(sortedData[j], sortedData[j + 1]);
+                    swap(sortedData[j], sortedData[j + 1]);
                 }
             }
         }
     }
     else {
-        // 找到前10个最大值
+        //找到前10个最大值
         int maxnum;
         int maxdata = 0;
-        std::string maxname = sortedData[0].name;
-        for (int i = 0; i < 10; i++)//用选择排序
+        string maxname = sortedData[0].name;
+        for (int i = 0; i < 10; i++)  //用选择排序
         {
             maxdata = sortedData[i].value;
             for (int j = i; j < size; j++)
@@ -264,9 +261,8 @@ std::vector<Place> Destination_Recommendation::sort(const std::vector<Place>& pl
             sortedData[i].value = maxdata;
         }
     }
-
-    // 返回前10个已排序的元素
-    return std::vector<Place>(sortedData.begin(), sortedData.begin() + std::min(10, size));
+    //返回前10个已排序的元素
+    return vector<Place>(sortedData.begin(), sortedData.begin() + min(10, size));
 }
 
 void Destination_Recommendation::paintEvent(QPaintEvent*) {
@@ -276,5 +272,6 @@ void Destination_Recommendation::paintEvent(QPaintEvent*) {
     painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
     painter.setPen(pen);  //使用pen画图
     painter.setFont(QFont("黑体", 25));
-    painter.drawText(630, 100, "当前账户名:" + accountNumber);
+    QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前账户名:" + accountNumber);
+    painter.drawText((LENGTH - textRect.width())/2, 100, "当前账户名:" + accountNumber);
 }

@@ -2,14 +2,6 @@
 #ifndef SEARCH_ARCHITECT_H
 #define SEARCH_ARCHITECT_H
 
-#include <QWidget>
-#include <QPushButton>
-#include <QComboBox>
-#include <QSqlQuery>
-#include <QLabel>
-#include <QTableWidget>
-#include <QTableWidgetItem>
-#include <QHeaderView>
 #include "Structure.h"
 
 class Search_Architect : public QWidget
@@ -35,10 +27,10 @@ private:
     QTableWidget* searchTableSA = NULL;  //距离表格
 
     void initWidget();  //界面初始化函数
-    StringList search(const std::string& type, const StringList& allFacilities);  //查找设施类型满足要求的设施名
-    int dijkstraLength(const std::string& start, const std::string& end, const std::vector<RoadLengthInfo>& roads);
-    std::vector<std::pair<std::string, int>> sortPlacesByDistance(const std::string& currentLocation,const std::string& facilityType,
-                                                                  const StringList& allFacilities,const std::vector<RoadLengthInfo>& roads);
+    StringList search(const string& type, const StringList& allFacilities);  //查找设施类型满足要求的设施名
+    int dijkstraLength(const string& start, const string& end, const vector<RoadLengthInfo>& roads);
+    vector<pair<string, int>> sortPlacesByDistance(const string& currentLocation,const string& facilityType,
+                                                   const StringList& allFacilities,const vector<RoadLengthInfo>& roads);
 };
 
 #endif // SEARCH_ARCHITECT_H

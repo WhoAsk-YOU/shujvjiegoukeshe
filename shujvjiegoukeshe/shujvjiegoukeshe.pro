@@ -12,6 +12,8 @@ SOURCES += \
     choose_widget.cpp \
     destination_recommendation.cpp \
     diary_management.cpp \
+    diary_read.cpp \
+    diary_write.cpp \
     main.cpp \
     route_strategy.cpp \
     search_architect.cpp \
@@ -22,6 +24,8 @@ HEADERS += \
     choose_widget.h \
     destination_recommendation.h \
     diary_management.h \
+    diary_read.h \
+    diary_write.h \
     route_strategy.h \
     search_architect.h \
     start_widget.h

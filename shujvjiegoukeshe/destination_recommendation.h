@@ -2,17 +2,6 @@
 #ifndef DESTINATION_RECOMMENDATION_H
 #define DESTINATION_RECOMMENDATION_H
 
-#include <QWidget>
-#include <QPushButton>
-#include <QPainter>
-#include <QLineEdit>
-#include <QSqlQuery>
-#include <QRadioButton>
-#include <QTableWidget>
-#include <QTableWidgetItem>
-#include <QHeaderView>
-#include <QCheckBox>
-#include <QRegularExpressionValidator>
 #include "choose_widget.h"
 
 class Destination_Recommendation : public QWidget
@@ -30,7 +19,6 @@ private slots:
     void tableClicked(int row, int column);  //若点击了表格中的第二列，则根据选中的景区/学校名进入下一个界面
 
 private:
-    bool flag = false;  //用于判断表格里是否显示数据
     QString accountNumber;  //当前账户名
     Choose_Widget* chooseWidget = NULL;  //游学路线规划、场所查询、游学日记管理选择界面
     QPushButton* buttonExitDR = NULL;  //退出按钮
@@ -43,13 +31,13 @@ private:
 
     void initWidget();  //界面初始化函数
 
-    std::vector<Place> fuzzySearchPlaces(const std::string& query, const std::vector<Place>& places, int n);  //查找算法
-    std::vector<std::string> generateNgrams(const std::string& str, int n);
-    bool comparePlaceMatch(const Place& a, const Place& b, const std::vector<std::string>& queryNgrams);
+    vector<Place> fuzzySearchPlaces(const string& query, const vector<Place>& places, int n);  //查找算法
+    StringList generateNgrams(const string& str, int n);
+    bool comparePlaceMatch(const Place& a, const Place& b, const StringList& queryNgrams);
 
-    std::vector<Place> sort(const std::vector<Place>& placeNames);  //排序算法
-    void quickSort(std::vector<Place>& arr, int left, int right, const std::vector<std::string>& queryNgrams);
-    int partition(std::vector<Place>& arr, int left, int right, const std::vector<std::string>& queryNgrams);
+    vector<Place> sort(const vector<Place>& placeNames);  //排序算法
+    void quickSort(vector<Place>& arr, int left, int right, const StringList& queryNgrams);
+    int partition(vector<Place>& arr, int left, int right, const StringList& queryNgrams);
     static bool compareById(const Place& a, const Place& b);
 
     void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出当前账户名

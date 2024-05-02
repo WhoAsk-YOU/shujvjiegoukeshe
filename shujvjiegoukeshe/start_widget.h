@@ -2,13 +2,6 @@
 #ifndef START_WIDGET_H
 #define START_WIDGET_H
 
-#include <QWidget>  //窗口
-#include <QPushButton>  //按钮
-#include <QLabel>  //文字标签
-#include <QLineEdit>  //输入框
-#include <QSqlQuery>  //数据库查询
-#include <QRegularExpressionValidator>  //正则表达式匹配
-#include <QMessageBox>  //对话框
 #include "destination_recommendation.h"  //目的地推荐界面，用于创建对象并跳转
 
 QT_BEGIN_NAMESPACE

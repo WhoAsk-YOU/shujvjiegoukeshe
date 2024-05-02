@@ -2,9 +2,6 @@
 #ifndef CHOOSE_WIDGET_H
 #define CHOOSE_WIDGET_H
 
-#include <QWidget>
-#include <QPushButton>
-#include <QPainter>
 #include "route_strategy.h"
 #include "search_architect.h"
 #include "diary_management.h"
