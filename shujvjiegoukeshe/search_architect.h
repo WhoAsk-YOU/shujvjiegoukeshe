@@ -8,7 +8,7 @@ class Search_Architect : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Search_Architect(QWidget* parent = nullptr);
+    Search_Architect(QString place);
     ~Search_Architect();
 
 signals:
@@ -18,6 +18,7 @@ private slots:
     void showResult();  //展示查询结果
 
 private:
+    QString place;
     QPushButton* buttonChoosebackSA = NULL;  //返回按钮
     QComboBox* boxLocationSA = NULL;  //要查询的建筑
     QComboBox* boxTypeSA = NULL;  //所有设施类型
@@ -27,6 +28,7 @@ private:
     QTableWidget* searchTableSA = NULL;  //距离表格
 
     void initWidget();  //界面初始化函数
+    void paintEvent(QPaintEvent*);
     StringList search(const string& type, const StringList& allFacilities);  //查找设施类型满足要求的设施名
     int dijkstraLength(const string& start, const string& end, const vector<RoadLengthInfo>& roads);
     vector<pair<string, int>> sortPlacesByDistance(const string& currentLocation,const string& facilityType,

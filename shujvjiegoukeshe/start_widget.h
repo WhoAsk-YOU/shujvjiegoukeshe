@@ -32,6 +32,6 @@ private:
     QLineEdit* lineEditPassword = NULL;  //密码输入框
 
     void initWidget();  //界面初始化函数
-
+    void paintEvent(QPaintEvent*);
 };
 #endif // START_WIDGET_H

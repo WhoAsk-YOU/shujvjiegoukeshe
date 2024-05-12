@@ -25,8 +25,8 @@
 using namespace std;
 using StringList = vector<string>;
 const int INF = numeric_limits<int>::max();  //最大的整数
-const int LENGTH = 1400;  //窗口长度
-const int WIDTH = 950;  //窗口宽带
+const int LENGTH = 1500;  //窗口长度
+const int WIDTH = 950;  //窗口宽度
 struct Place {  //景区/学校信息
     string name;  //景区或学校名
     int value;  //景区或学校对应的热度值/好评数

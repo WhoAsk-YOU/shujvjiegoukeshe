@@ -1,9 +1,9 @@
 ﻿//场所查询界面
 #include "search_architect.h"
 
-Search_Architect::Search_Architect(QWidget *parent)
-    : QWidget{parent}
+Search_Architect::Search_Architect(QString place)
 {
+    this->place = place;
     initWidget();
     connect(buttonChoosebackSA,&QPushButton::clicked,[=](){  //若点击返回按钮
         emit this->chooseback();  //发出返回选择界面的信号
@@ -43,15 +43,15 @@ void Search_Architect::showResult(){
         searchTableSA->setItem(i, 1, new QTableWidgetItem(""));
     }
 
-    query.exec("select name from t_architect order by architect_id limit 20,50");  //从数据库表里查询所有设施信息
+    query.exec("select name from t_roadnode order by roadnode_id limit 20,50");  //从数据库表里查询所有设施信息
     while(query.next()){
         std::string name = query.value(0).toString().toStdString();
         allFacilities.push_back(name);
     }
     query.clear();
     query.exec("select a1.name,a2.name,r.length "
-               "from t_road r join t_architect a1 on r.start = a1.architect_id "
-               "join t_architect a2 on r.end = a2.architect_id");  //从数据库表里查询所有道路信息
+               "from t_road r join t_roadnode a1 on r.start = a1.roadnode_id "
+               "join t_roadnode a2 on r.end = a2.roadnode_id");  //从数据库表里查询所有道路信息
     while(query.next()){
         RoadLengthInfo roadInfo;
         roadInfo.start = query.value(0).toString().toStdString();
@@ -79,53 +79,155 @@ void Search_Architect::initWidget(){
     types<<"全部"<<"商店"<<"饭店"<<"洗手间"<<"图书馆"<<"食堂"<<"超市"<<"咖啡馆"<<"医院"<<"花园"<<"体育馆";
     setWindowTitle("学生游学系统");
     setFixedSize(LENGTH,WIDTH);
-
     buttonChoosebackSA = new QPushButton("返回", this);
-    buttonChoosebackSA->move(0, WIDTH*8/9);
-    buttonChoosebackSA->resize(LENGTH/9, WIDTH/9);
-    buttonChoosebackSA->setFont(QFont("黑体",25));
+    buttonChoosebackSA->move(0, WIDTH * 17 / 18);
+    buttonChoosebackSA->resize(50, WIDTH / 18);
+    buttonChoosebackSA->setStyleSheet(
+        "QPushButton {"
+        "    background-color: #ff9444;" // 设置背景颜色为较浅的偏橙色
+        "    border-style: outset;"       // 边框样式
+        "    border-width: 2px;"          // 边框宽度
+        "    border-radius: 10px;"        // 边框圆角
+        "    border-color: #555555;"      // 边框颜色
+        "    font: bold 25px;"             // 字体大小和粗细
+        "    min-width: 3em;"             // 调整按钮的最小宽度
+        "    padding: 4px;"               // 调整内边距
+        "    color: white;"                // 字体颜色
+        "}"
+        "QPushButton:hover {"
+        "    background-color: #ffa944;"  // 悬停时的背景颜色调整为更浅的偏橙色
+        "}"
+        "QPushButton:pressed {"
+        "    background-color: #ff8c44;"  // 鼠标按下时的背景颜色调整为较深的偏橙色
+        "    border-style: inset;"
+        "}"
+        );
     buttonSearchSA = new QPushButton("查询", this);
-    buttonSearchSA->move(1050, 130);
-    buttonSearchSA->resize(80, 45);
-    buttonSearchSA->setFont(QFont("黑体",20));
-
+    buttonSearchSA->move(LENGTH/2-35, 750);
+    buttonSearchSA->resize(70, WIDTH / 17);
+    buttonSearchSA->setStyleSheet("QPushButton {"
+                                  "    background-color: #3399FF; /* 浅蓝色背景 */"
+                                  "    border-style: outset;"
+                                  "    border-width: 2px;"
+                                  "    border-radius: 10px; /* 圆角 */"
+                                  "    border-color: #1C5FAF; /* 稍深一点的蓝色边框 */"
+                                  "    font: bold 21px 黑体;"
+                                  "    min-width: 3em;"
+                                  "    padding: 6px;"
+                                  "}"
+                                  "QPushButton:hover {"
+                                  "    background-color: #1C5FAF; /* 鼠标悬停时的背景颜色 */"
+                                  "}"
+                                  "QPushButton:pressed {"
+                                  "    background-color: #082F5A; /* 按钮按下时的背景颜色 */"
+                                  "    border-style: inset;"
+                                  "}"
+                                  );
     boxTypeSA = new QComboBox(this);
-    boxTypeSA->move(750,130);
-    boxTypeSA->resize(200,45);
-    boxTypeSA->setFont(QFont("黑体",20));
+    boxTypeSA->move(874,230);
+    boxTypeSA->resize(130,45);
     boxTypeSA->addItems(types);
+    boxTypeSA->setStyleSheet(""
+                             "QComboBox {"
+                             "    border: 2px solid #A8A8A8;"
+                             "    border-radius: 5px;"
+                             "    padding: 1px 18px 1px 3px;"
+                             "    min-width: 4em;"
+                             "    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
+                             "                                stop: 0 #E1E1E1, stop: 1.0 #D3D3D3);"
+                             "    font: bold 18px 黑体;"
+                             "}"
+                             "QComboBox:hover {"
+                             "    border: 2px solid #7EB6FF;"
+                             "}"
+                             "QComboBox QAbstractItemView {"
+                             "    border: 1px solid #A8A8A8;"
+                             "    selection-background-color: #7EB6FF;"
+                             "    background: white;"
+                             "    outline: 0;"
+                             "}"
+                             "");
     boxLocationSA = new QComboBox(this);
-    boxLocationSA->move(350,130);
-    boxLocationSA->resize(200,45);
-    boxLocationSA->setFont(QFont("黑体",20));
-    query.exec("select name from t_architect");
+    boxLocationSA->move(554,230);
+    boxLocationSA->resize(130,45);
+    query.exec("select name from t_roadnode order by roadnode_id limit 70");
     while(query.next()){
         QString name = query.value(0).toString();
         boxLocationSA->addItem(name);
     }
-
-    labelLocationSA = new QLabel("查询场所：",this);
-    labelLocationSA->setGeometry(200, 130, 200, 45);
+    boxLocationSA->setStyleSheet(""
+                        "QComboBox {"
+                        "    border: 2px solid #A8A8A8;"
+                        "    border-radius: 5px;"
+                        "    padding: 1px 18px 1px 3px;"
+                        "    min-width: 4em;"
+                        "    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
+                        "                                stop: 0 #E1E1E1, stop: 1.0 #D3D3D3);"
+                        "    font: bold 18px 黑体;"
+                        "}"
+                        "QComboBox:hover {"
+                        "    border: 2px solid #7EB6FF;"
+                        "}"
+                        "QComboBox QAbstractItemView {"
+                        "    border: 1px solid #A8A8A8;"
+                        "    selection-background-color: #7EB6FF;"
+                        "    background: white;"
+                        "    outline: 0;"
+                        "}"
+                        "");
+    labelLocationSA = new QLabel("场所：",this);
+    labelLocationSA->setGeometry(430, 230, 200, 45);
     labelLocationSA->setAlignment(Qt::AlignCenter);
     labelLocationSA->setStyleSheet("QLabel{font:20px;}");
-    labelTypeSA = new QLabel("设施类型：",this);
-    labelTypeSA->setGeometry(590, 130, 200, 45);
+    labelTypeSA = new QLabel("场所附近设施类型：",this);
+    labelTypeSA->setGeometry(689, 230, 200, 45);
     labelTypeSA->setAlignment(Qt::AlignCenter);
     labelTypeSA->setStyleSheet("QLabel{font:20px;}");
 
     searchTableSA = new QTableWidget(5,2,this);  //创建5行2列的表格
     searchTableSA->verticalHeader()->setVisible(false);  //隐藏垂直表头
     searchTableSA->setEditTriggers(QAbstractItemView::NoEditTriggers);  //表格内的数据不允许修改
-    searchTableSA->move(330,300);
-    searchTableSA->resize(752,402);
-    searchTableSA->setFont(QFont("黑体",20));
+    searchTableSA->move(LENGTH/2-251,300);
+    searchTableSA->setFont(QFont("黑体",20));  
+    horizontalHeaderLabels << "设施名称" << "到场所的距离(m)";
+    searchTableSA->setHorizontalHeaderLabels(horizontalHeaderLabels);
+    searchTableSA->setStyleSheet("QTableWidget {"
+                    "    background-color: #e6f2ff; /* 浅蓝色背景 */"
+                    "    border: 1px solid #007bff; /* 深蓝色边框 */"
+                    "    font: 18px 黑体;"
+                    "}"
+                    "QTableWidget::item {"
+                    "    border: none; /* 无单元格边框 */"
+                    "    padding: 5px; /* 单元格内边距 */"
+                    "}"
+                    "QTableWidget::item:selected {"
+                    "    background-color: #007bff; /* 选中单元格的背景颜色 */"
+                    "    color: white;"
+                    "}"
+                    "QTableWidget::horizontalHeader {"
+                    "    background-color: #007bff; /* 水平表头背景颜色 */"
+                    "    color: white; /* 水平表头文字颜色 */"
+                    "    font-weight: bold; /* 水平表头文字加粗 */"
+                    "    border: none; /* 无水平表头边框 */"
+                    "    height: 40px; /* 水平表头高度 */"
+                    "}"
+                    "QTableWidget::horizontalHeader::section {"
+                    "    border-bottom: 1px solid #FFFFFF; /* 水平表头底部分隔线 */"
+                    "    border-top: 3px solid #FFFFFF; /* 水平表头顶部分隔线 */"
+                    "    border-left: 1px solid #FFFFFF; /* 水平表头左侧分隔线 */"
+                    "    border-right: none; /* 无右侧分隔线 */"
+                    "}"
+                    "QTableWidget::verticalHeader::section {"
+                    "    border-right: 1px solid #FFFFFF; /* 垂直表头右侧分隔线 */"
+                    "    border-left: 1px solid #FFFFFF; /* 无左侧分隔线 */"
+                    "}"
+                    );
+    searchTableSA->resize(502,402);
     searchTableSA->horizontalHeader()->setMinimumHeight(50);
     for (int i = 0; i < searchTableSA->rowCount(); i++)  //设置每一行的高度为70像素
         searchTableSA->setRowHeight(i, 70);
-    searchTableSA->setColumnWidth(0, 500);  // 设置第1列的宽度为500像素
-    searchTableSA->setColumnWidth(1, 250);
-    horizontalHeaderLabels << "设施名称" << "到查询场所的距离(m)";
-    searchTableSA->setHorizontalHeaderLabels(horizontalHeaderLabels);
+    searchTableSA->setColumnWidth(0, 300);  // 设置第1列的宽度为300像素
+    searchTableSA->setColumnWidth(1, 200);
 }
 
 StringList Search_Architect::search(const string& type, const StringList& allFacilities) {
@@ -223,3 +325,26 @@ vector<pair<string, int>> Search_Architect::sortPlacesByDistance(const string& c
     return sortedPlaces;
 }
 
+void Search_Architect::paintEvent(QPaintEvent*) {
+    QPen pen(Qt::white);  //画笔颜色为白色
+    pen.setWidth(0);  //画笔宽度
+    QPainter painter(this);
+    QPixmap pix;
+    pix.load(":/resource/3.jpg");
+    int windowWidth = this->width();
+    int windowHeight = this->height();
+    QPixmap scaledPix = pix.scaled(windowWidth, windowHeight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    painter.drawPixmap(0, 0, scaledPix);
+    painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
+    painter.setPen(pen);  //使用pen画图
+    painter.setBrush(Qt::white);
+    painter.setOpacity(0.5);
+    painter.drawRect(400, 0, 700, 950);
+    pen.setColor(Qt::black);
+    pen.setWidth(2);
+    painter.setPen(pen);
+    painter.setOpacity(1);
+    painter.setFont(QFont("黑体", 25));
+    QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前所在景区/学校:" + place);
+    painter.drawText((LENGTH - textRect.width())/2, 100, "当前所在景区/学校:" + place);
+}

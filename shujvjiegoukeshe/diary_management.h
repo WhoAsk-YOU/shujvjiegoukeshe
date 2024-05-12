@@ -26,15 +26,19 @@ private:
     QString place;  //当前所在景区/学校
     Diary_Write* diaryWrite = NULL;
     Diary_Read* diaryRead = NULL;
-    QLabel* labelDestinationDM = NULL;  //游学目的地
+    QLabel* labelDestinationDM = NULL;  //目的地查找
+    QLabel* labelDiaryNameDM = NULL;  //日记名查找
+    QLabel* labelDiaryContentDM = NULL;  //全文检索
     QPushButton* buttonChoosebackDM = NULL;  //返回按钮
     QPushButton* buttonWriteDM = NULL;  //写日记按钮
     QPushButton* buttonQueryDestinationDM = NULL;  //查询按钮（目的地日记）
     QPushButton* buttonQueryDiaryNameDM = NULL;  //查询按钮（日记名）
+    QPushButton* buttonQueryDiaryContentDM = NULL;  //查询按钮（日记内容）
     QRadioButton* buttonHeatValueDM = NULL;  //按热度排序
     QRadioButton* buttonGoodCommentsDM = NULL;  //按评价排序
     QComboBox* boxDestinationDM = NULL;  //目的地
     QLineEdit* lineEditDiaryNameDM = NULL;  //日记名输入框
+    QLineEdit* lineEditDiaryContentDM = NULL;  //日记内容输入框
     QTableWidget* tableDiaryInfoDM = NULL;  //日记信息表格
 
     void initWidget();  //界面初始化函数

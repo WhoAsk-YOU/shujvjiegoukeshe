@@ -5,6 +5,7 @@ Destination_Recommendation::Destination_Recommendation(QString accountNumber)
 {
     this->accountNumber = accountNumber;
     initWidget();
+    showResult();
     connect(buttonExitDR, &QPushButton::clicked, [=]() {  //若点击退出按钮
         emit this->chooseback();  //发出返回开始界面的信号
     });
@@ -36,7 +37,6 @@ Destination_Recommendation::~Destination_Recommendation() {  //析构函数，�
 void Destination_Recommendation::showResult() {
     QSqlQuery query;
     QStringList horizontalHeaderLabels;
-    Place spots[200];  //结构数组，储存景区/学校名以及对应的热度/好评数
     vector<Place> origin_Places, SearchedPlaces;  //把数组放进向量里，统一PlaceSearch函数返回值格式
     string place = lineEditSearchDR->text().toStdString();
 
@@ -56,10 +56,11 @@ void Destination_Recommendation::showResult() {
         rankingTableDR->setHorizontalHeaderLabels(horizontalHeaderLabels);
     }
 
-    for (int i = 0; query.next(); i++) {  //遍历数据集，将数据加入结构数组
-        spots[i].name = query.value(0).toString().toStdString();  //获取景区/学校的名称
-        spots[i].value = query.value(1).toInt();  //获取对应的热度或好评数
-        origin_Places.push_back(spots[i]);
+    while(query.next()) {  //遍历数据集，将数据加入结构数组
+        Place spot;
+        spot.name = query.value(0).toString().toStdString();  //获取景区/学校的名称
+        spot.value = query.value(1).toInt();  //获取对应的热度或好评数
+        origin_Places.push_back(spot);
     }
 
     if (boxKeyWordDR->isChecked())  //如果选中了关键词优先
@@ -100,58 +101,146 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
     QStringList horizontalHeaderLabels;
     setWindowTitle("学生游学系统");
     setFixedSize(LENGTH, WIDTH);
-
     buttonExitDR = new QPushButton("退出", this);
-    buttonExitDR->move(0, WIDTH * 8 / 9);
-    buttonExitDR->resize(LENGTH / 9, WIDTH / 9);
-    buttonExitDR->setFont(QFont("黑体", 25));
+    buttonExitDR->move(0, WIDTH*17/18);
+    buttonExitDR->resize(50, WIDTH / 18);
+    buttonExitDR->setStyleSheet(
+        "QPushButton {"
+        "    background-color: #ff9444;" // 设置背景颜色为较浅的偏橙色
+        "    border-style: outset;"       // 边框样式
+        "    border-width: 2px;"          // 边框宽度
+        "    border-radius: 10px;"        // 边框圆角
+        "    border-color: #555555;"      // 边框颜色
+        "    font: bold 25px;"             // 字体大小和粗细
+        "    min-width: 3em;"             // 调整按钮的最小宽度
+        "    padding: 4px;"               // 调整内边距
+        "    color: white;"                // 字体颜色
+        "}"
+        "QPushButton:hover {"
+        "    background-color: #ffa944;"  // 悬停时的背景颜色调整为更浅的偏橙色
+        "}"
+        "QPushButton:pressed {"
+        "    background-color: #ff8c44;"  // 鼠标按下时的背景颜色调整为较深的偏橙色
+        "    border-style: inset;"
+        "}"
+        );
     buttonSearchDR = new QPushButton("搜索", this);
-    buttonSearchDR->move(LENGTH / 2 + LENGTH / 7 -30, WIDTH * 3 / 19);
-    buttonSearchDR->resize(LENGTH / 17, WIDTH / 17);
-    buttonSearchDR->setFont(QFont("黑体", 21));
+    buttonSearchDR->move(LENGTH / 2 + LENGTH / 7 - 30, WIDTH * 3 / 19 + 90);
+    buttonSearchDR->resize(80, WIDTH / 17);
+    buttonSearchDR->setStyleSheet("QPushButton {"
+                                  "    background-color: #3399FF; /* 浅蓝色背景 */"
+                                  "    border-style: outset;"
+                                  "    border-width: 2px;"
+                                  "    border-radius: 10px; /* 圆角 */"
+                                  "    border-color: #1C5FAF; /* 稍深一点的蓝色边框 */"
+                                  "    font: bold 21px 黑体;"
+                                  "    min-width: 3em;"
+                                  "    padding: 6px;"
+                                  "}"
+                                  "QPushButton:hover {"
+                                  "    background-color: #1C5FAF; /* 鼠标悬停时的背景颜色 */"
+                                  "}"
+                                  "QPushButton:pressed {"
+                                  "    background-color: #082F5A; /* 按钮按下时的背景颜色 */"
+                                  "    border-style: inset;"
+                                  "}"
+                                  );
 
     lineEditSearchDR = new QLineEdit(this);
-    lineEditSearchDR->setGeometry(LENGTH / 2 - LENGTH / 7 -30, WIDTH * 3 / 19, LENGTH / 3.5, WIDTH / 17);
-    lineEditSearchDR->setFont(QFont("黑体", 15));
+    lineEditSearchDR->setGeometry(LENGTH / 2 - LENGTH / 7 -30, WIDTH * 3 / 19 + 90, LENGTH / 3.5, WIDTH / 17);
     lineEditSearchDR->setPlaceholderText("请输入景区或学校名/关键词");
     lineEditSearchDR->setClearButtonEnabled(true);
     lineEditSearchDR->setMaxLength(20);
     lineEditSearchDR->setValidator(new QRegularExpressionValidator(QRegularExpression("[\u4e00-\u9fff]+"), this));  //搜索目的地只允许输入中文字符
+    lineEditSearchDR->setStyleSheet("QLineEdit {"
+                                    "border: 2px solid #A6C1FF;" // 浅蓝色边框
+                                    "border-radius: 8px;"         // 圆角
+                                    "padding: 5px 10px;"          // 内边距
+                                    "font-size: 15px 黑体;"            // 字体大小
+                                    "background-color: #FFFFFF;"  // 背景颜色为白色
+                                    "selection-background-color: #A6C1FF;" // 选择时文字背景颜色
+                                    "}"
+                                    "QLineEdit:hover {"
+                                    "border: 2px solid #799BFF;" // 悬浮时边框颜色变深
+                                    "}"
+                                    "QLineEdit:focus {"
+                                    "border: 2px solid #3F7FFF;" // 聚焦时边框颜色更深
+                                    "}"
+                                    "QLineEdit QAbstractSpinBox::up-button, QLineEdit QAbstractSpinBox::down-button {"
+                                    "border-style: none;" // 去掉上下箭头按钮的边框
+                                    "background: transparent;" // 设置箭头按钮背景透明
+                                    "}"
+                                    "QLineEdit::placeholder {"
+                                    "color: #A0A0A0;" // 提示文本颜色
+                                    "font-style: italic;" // 提示文本斜体
+                                    "}"
+                                    );
 
     buttonHeatValueDR = new QRadioButton("按热度排序", this);
     buttonHeatValueDR->setChecked(true);  //默认选中按热度排序
-    buttonHeatValueDR->move(480, 230);
-    buttonHeatValueDR->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");  //设置按钮大小及字体大小
+    buttonHeatValueDR->move(540, 190);
+    buttonHeatValueDR->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
     buttonGoodCommentsDR = new QRadioButton("按评价排序", this);
-    buttonGoodCommentsDR->move(630, 230);
+    buttonGoodCommentsDR->move(690, 190);
     buttonGoodCommentsDR->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 15px; }");
 
     boxKeyWordDR = new QCheckBox("关键词优先", this);
-    boxKeyWordDR->setGeometry(780, 211, 100, 60);
+    boxKeyWordDR->setGeometry(840, 171, 100, 60);
     boxKeyWordDR->setFont(QFont("黑体", 12));
 
     rankingTableDR = new QTableWidget(10, 3, this);  //创建10行3列的表格，用于显示景区/学校排名
     rankingTableDR->verticalHeader()->setVisible(false);  //隐藏垂直表头
     rankingTableDR->setEditTriggers(QAbstractItemView::NoEditTriggers);  //表格内的数据不允许修改
     rankingTableDR->move(LENGTH / 2 - 285, 300);
+    //设置水平表头
+    horizontalHeaderLabels << "排名" << "名称" << "热度";
+    rankingTableDR->setHorizontalHeaderLabels(horizontalHeaderLabels);
+    //设置表格样式
+    rankingTableDR->setStyleSheet("QTableWidget {"
+                                  "    background-color: #e6f2ff; /* 浅蓝色背景 */"
+                                  "    border: 1px solid #007bff; /* 深蓝色边框 */"
+                                  "    font: 18px 黑体;"
+                                  "}"
+                                  "QTableWidget::item {"
+                                  "    border: none; /* 无单元格边框 */"
+                                  "    padding: 5px; /* 单元格内边距 */"
+                                  "}"
+                                  "QTableWidget::item:selected {"
+                                  "    background-color: #007bff; /* 选中单元格的背景颜色 */"
+                                  "    color: white;"
+                                  "}"
+                                  "QTableWidget::horizontalHeader {"
+                                  "    background-color: #007bff; /* 水平表头背景颜色 */"
+                                  "    color: white; /* 水平表头文字颜色 */"
+                                  "    font-weight: bold; /* 水平表头文字加粗 */"
+                                  "    border: none; /* 无水平表头边框 */"
+                                  "    height: 40px; /* 水平表头高度 */"
+                                  "}"
+                                  "QTableWidget::horizontalHeader::section {"
+                                  "    border-bottom: 1px solid #FFFFFF; /* 水平表头底部分隔线 */"
+                                  "    border-top: 3px solid #FFFFFF; /* 水平表头顶部分隔线 */"
+                                  "    border-left: 1px solid #FFFFFF; /* 水平表头左侧分隔线 */"
+                                  "    border-right: none; /* 无右侧分隔线 */"
+                                  "}"
+                                  "QTableWidget::verticalHeader::section {"
+                                  "    border-right: 1px solid #FFFFFF; /* 垂直表头右侧分隔线 */"
+                                  "    border-left: 1px solid #FFFFFF; /* 无左侧分隔线 */"
+                                  "}"
+                                  );
     rankingTableDR->resize(572, 492);
-    rankingTableDR->setFont(QFont("黑体", 18));
     rankingTableDR->horizontalHeader()->setMinimumHeight(40);
+    //设置表格内容和样式
     for (int i = 0; i < rankingTableDR->rowCount(); i++) {
         QTableWidgetItem* item = new QTableWidgetItem(QString::number(i + 1));
         item->setTextAlignment(Qt::AlignCenter);  //文本居中对齐
         rankingTableDR->setItem(i, 0, item);
         rankingTableDR->setItem(i, 1, new QTableWidgetItem(""));
         rankingTableDR->setItem(i, 2, new QTableWidgetItem(""));
+        rankingTableDR->setRowHeight(i, 45);  //设置每一行的高度为45像素
     }
-    for (int i = 0; i < rankingTableDR->rowCount(); i++)  //设置每一行的高度为45像素
-        rankingTableDR->setRowHeight(i, 45);
     rankingTableDR->setColumnWidth(0, 100);  // 设置第1列的宽度为100像素
     rankingTableDR->setColumnWidth(1, 320);
     rankingTableDR->setColumnWidth(2, 150);
-    //设置水平表头
-    horizontalHeaderLabels << "排名" << "名称" << "热度";
-    rankingTableDR->setHorizontalHeaderLabels(horizontalHeaderLabels);
 }
 
 vector<Place> Destination_Recommendation::fuzzySearchPlaces(const string& query, const vector<Place>& places, int n) {
@@ -185,8 +274,8 @@ StringList Destination_Recommendation::generateNgrams(const string& str, int n) 
 }
 
 bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& b, const StringList& queryNgrams) {
-    StringList aNgrams = generateNgrams(a.name, 3);
-    StringList bNgrams = generateNgrams(b.name, 3);
+    StringList aNgrams = generateNgrams(a.name, 4);
+    StringList bNgrams = generateNgrams(b.name, 4);
 
     int aMatches = 0;
     int bMatches = 0;
@@ -266,12 +355,25 @@ vector<Place> Destination_Recommendation::sort(const vector<Place>& placeNames) 
 }
 
 void Destination_Recommendation::paintEvent(QPaintEvent*) {
-    QPen pen(Qt::black);  //画笔颜色为黑色
-    pen.setWidth(2);  //画笔宽度
+    QPen pen(Qt::white);  //画笔颜色为白色
+    pen.setWidth(0);  //画笔宽度
     QPainter painter(this);
+    QPixmap pix;
+    pix.load(":/resource/3.jpg");
+    int windowWidth = this->width();
+    int windowHeight = this->height();
+    QPixmap scaledPix = pix.scaled(windowWidth, windowHeight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    painter.drawPixmap(0, 0, scaledPix);
     painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
     painter.setPen(pen);  //使用pen画图
+    painter.setBrush(Qt::white);
+    painter.setOpacity(0.5);  // 设置透明度，0.0为完全透明，1.0为完全不透明
+    painter.drawRect(400, 0, 700, 950);
+    painter.setOpacity(1.0);
+    pen.setColor(Qt::black);
+    pen.setWidth(2);
+    painter.setPen(pen);
     painter.setFont(QFont("黑体", 25));
-    QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前账户名:" + accountNumber);
-    painter.drawText((LENGTH - textRect.width())/2, 100, "当前账户名:" + accountNumber);
+    QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "欢迎用户:" + accountNumber);
+    painter.drawText((LENGTH - textRect.width())/2, 100, "欢迎用户:" + accountNumber);
 }

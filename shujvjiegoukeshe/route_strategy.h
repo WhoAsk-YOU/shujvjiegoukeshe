@@ -8,7 +8,7 @@ class Route_Strategy : public QWidget
 {
     Q_OBJECT
 public:
-    explicit Route_Strategy(QWidget* parent = nullptr);
+    Route_Strategy(QString place);
     ~Route_Strategy();
 
 signals:
@@ -20,6 +20,7 @@ private slots:
 private:
     int mode = 0;  //若未点击查询按钮,mode=0;若点击了目的地(1个)查询按钮,mode=1;若点击了目的地(多个)查询按钮,mode=2
     int totalTimeOrLenth = 0;  //最短距离/时间
+    QString place;
     StringList minPath;  //结果路径
     QLabel* labelInitialRS = NULL;  //起始位置
     QLabel* labelDestinationRS = NULL;  //目的地（1个）

@@ -2,9 +2,9 @@
 #include "route_strategy.h"
 #include <QDebug>
 
-Route_Strategy::Route_Strategy(QWidget* parent)
-    : QWidget{ parent }
+Route_Strategy::Route_Strategy(QString place)
 {
+    this->place = place;
     initWidget();
     connect(buttonChoosebackRS, &QPushButton::clicked, [=]() {  //若点击返回按钮
         emit this->chooseback();  //发出返回目的地推荐界面的信号
@@ -57,8 +57,8 @@ pair<int, StringList> Route_Strategy::readyToPaint(){
     string destination = boxDestinationRS->currentText().toStdString();  //目的地(1个)
     StringList destinations;  //目的地(多个)
     query.exec("select a1.name,a2.name,r.length,r.congestion,r.velocity "
-               "from t_road r join t_architect a1 on r.start = a1.architect_id "
-               "join t_architect a2 on r.end = a2.architect_id");
+               "from t_road r join t_roadnode a1 on r.start = a1.roadnode_id "
+               "join t_roadnode a2 on r.end = a2.roadnode_id");
     while (query.next()) {  //从数据库中把对应信息存入所有道路信息
         RoadInfo roadInfo;
         roadInfo.start = query.value(0).toString().toStdString();
@@ -116,62 +116,174 @@ void Route_Strategy::initWidget() {
     QSqlQuery query;
     setWindowTitle("学生游学系统");
     setFixedSize(LENGTH, WIDTH);
-
     labelInitialRS = new QLabel("起始位置：", this);
-    labelInitialRS->setGeometry(150, 80, 200, 45);
+    labelInitialRS->setGeometry(375, 190, 200, 45);
     labelInitialRS->setAlignment(Qt::AlignCenter);
     labelInitialRS->setStyleSheet("QLabel{font:20px;}");
     labelDestinationRS = new QLabel("目的地(1个)：", this);
-    labelDestinationRS->setGeometry(540, 80, 200, 45);
+    labelDestinationRS->setGeometry(658, 190, 200, 45);
     labelDestinationRS->setAlignment(Qt::AlignCenter);
     labelDestinationRS->setStyleSheet("QLabel{font:20px;}");
     labelDestinationsRS = new QLabel("目的地(多个)：", this);
-    labelDestinationsRS->setGeometry(165, 160, 200, 45);
+    labelDestinationsRS->setGeometry(389, 270, 200, 45);
     labelDestinationsRS->setAlignment(Qt::AlignCenter);  //文本框内容居中显示
     labelDestinationsRS->setStyleSheet("QLabel{font:20px;}");  //设置文本框字体
-
     buttonChoosebackRS = new QPushButton("返回", this);
-    buttonChoosebackRS->move(0, WIDTH * 8 / 9);
-    buttonChoosebackRS->resize(LENGTH / 9, WIDTH / 9);
-    buttonChoosebackRS->setFont(QFont("黑体", 25));
+    buttonChoosebackRS->move(0, WIDTH * 17 / 18);
+    buttonChoosebackRS->resize(50, WIDTH / 18);
+    buttonChoosebackRS->setStyleSheet(
+        "QPushButton {"
+        "    background-color: #ff9444;" // 设置背景颜色为较浅的偏橙色
+        "    border-style: outset;"       // 边框样式
+        "    border-width: 2px;"          // 边框宽度
+        "    border-radius: 10px;"        // 边框圆角
+        "    border-color: #555555;"      // 边框颜色
+        "    font: bold 25px;"             // 字体大小和粗细
+        "    min-width: 3em;"             // 调整按钮的最小宽度
+        "    padding: 4px;"               // 调整内边距
+        "    color: white;"                // 字体颜色
+        "}"
+        "QPushButton:hover {"
+        "    background-color: #ffa944;"  // 悬停时的背景颜色调整为更浅的偏橙色
+        "}"
+        "QPushButton:pressed {"
+        "    background-color: #ff8c44;"  // 鼠标按下时的背景颜色调整为较深的偏橙色
+        "    border-style: inset;"
+        "}"
+        );
     buttonOneQueryRS = new QPushButton("查询", this);
-    buttonOneQueryRS->move(1000, 80);
-    buttonOneQueryRS->resize(80, 45);
-    buttonOneQueryRS->setFont(QFont("黑体", 20));
+    buttonOneQueryRS->move(1004, 185);
+    buttonOneQueryRS->resize(70, WIDTH / 17);
+    buttonOneQueryRS->setStyleSheet("QPushButton {"
+                                  "    background-color: #3399FF; /* 浅蓝色背景 */"
+                                  "    border-style: outset;"
+                                  "    border-width: 2px;"
+                                  "    border-radius: 10px; /* 圆角 */"
+                                  "    border-color: #1C5FAF; /* 稍深一点的蓝色边框 */"
+                                  "    font: bold 21px 黑体;"
+                                  "    min-width: 3em;"
+                                  "    padding: 6px;"
+                                  "}"
+                                  "QPushButton:hover {"
+                                  "    background-color: #1C5FAF; /* 鼠标悬停时的背景颜色 */"
+                                  "}"
+                                  "QPushButton:pressed {"
+                                  "    background-color: #082F5A; /* 按钮按下时的背景颜色 */"
+                                  "    border-style: inset;"
+                                  "}"
+                                  );
     buttonQueriesRS = new QPushButton("查询", this);
-    buttonQueriesRS->move(1000, 160);
-    buttonQueriesRS->resize(80, 45);
-    buttonQueriesRS->setFont(QFont("黑体", 20));
+    buttonQueriesRS->move(1004, 265);
+    buttonQueriesRS->resize(70, WIDTH / 17);
+    buttonQueriesRS->setStyleSheet("QPushButton {"
+                                    "    background-color: #3399FF; /* 浅蓝色背景 */"
+                                    "    border-style: outset;"
+                                    "    border-width: 2px;"
+                                    "    border-radius: 10px; /* 圆角 */"
+                                    "    border-color: #1C5FAF; /* 稍深一点的蓝色边框 */"
+                                    "    font: bold 21px 黑体;"
+                                    "    min-width: 3em;"
+                                    "    padding: 6px;"
+                                    "}"
+                                    "QPushButton:hover {"
+                                    "    background-color: #1C5FAF; /* 鼠标悬停时的背景颜色 */"
+                                    "}"
+                                    "QPushButton:pressed {"
+                                    "    background-color: #082F5A; /* 按钮按下时的背景颜色 */"
+                                    "    border-style: inset;"
+                                    "}"
+                                    );
 
     boxInitialLocationRS = new QComboBox(this);
-    boxInitialLocationRS->move(300, 80);
-    boxInitialLocationRS->resize(200, 45);
+    boxInitialLocationRS->move(519, 190);
+    boxInitialLocationRS->resize(130, 45);
     boxInitialLocationRS->setFont(QFont("黑体", 20));
+    boxInitialLocationRS->setStyleSheet(""
+                                    "QComboBox {"
+                                    "    border: 2px solid #A8A8A8;"
+                                    "    border-radius: 5px;"
+                                    "    padding: 1px 18px 1px 3px;"
+                                    "    min-width: 4em;"
+                                    "    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
+                                    "                                stop: 0 #E1E1E1, stop: 1.0 #D3D3D3);"
+                                    "    font: bold 18px;"
+                                    "}"
+                                    "QComboBox:hover {"
+                                    "    border: 2px solid #7EB6FF;"
+                                    "}"
+                                    "QComboBox QAbstractItemView {"
+                                    "    border: 1px solid #A8A8A8;"
+                                    "    selection-background-color: #7EB6FF;"
+                                    "    background: white;"
+                                    "    outline: 0;"
+                                    "}"
+                                    "");
     boxDestinationRS = new QComboBox(this);
-    boxDestinationRS->move(700, 80);
-    boxDestinationRS->resize(200, 45);
+    boxDestinationRS->move(818, 190);
+    boxDestinationRS->resize(130, 45);
     boxDestinationRS->setFont(QFont("黑体", 20));
-    query.exec("select name from t_architect");
+    query.exec("select name from t_roadnode order by roadnode_id limit 70");
     while (query.next()) {
         QString name = query.value(0).toString();
         boxInitialLocationRS->addItem(name);
         boxDestinationRS->addItem(name);
     }
-
+    boxDestinationRS->setStyleSheet(""
+                        "QComboBox {"
+                        "    border: 2px solid #A8A8A8;"
+                        "    border-radius: 5px;"
+                        "    padding: 1px 18px 1px 3px;"
+                        "    min-width: 4em;"
+                        "    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,"
+                        "                                stop: 0 #E1E1E1, stop: 1.0 #D3D3D3);"
+                        "    font: bold 18px;"
+                        "}"
+                        "QComboBox:hover {"
+                        "    border: 2px solid #7EB6FF;"
+                        "}"
+                        "QComboBox QAbstractItemView {"
+                        "    border: 1px solid #A8A8A8;"
+                        "    selection-background-color: #7EB6FF;"
+                        "    background: white;"
+                        "    outline: 0;"
+                        "}"
+                        "");
     buttonShortestTimeRS = new QRadioButton("最短时间", this);
     buttonShortestTimeRS->setChecked(true);
-    buttonShortestTimeRS->move(1120, 120);
+    buttonShortestTimeRS->move(600, 140);
     buttonShortestTimeRS->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 13px; }");  //设置按钮大小及字体大小
     buttonShortestDistanceRS = new QRadioButton("最短距离", this);
-    buttonShortestDistanceRS->move(1120, 150);
+    buttonShortestDistanceRS->move(800, 140);
     buttonShortestDistanceRS->setStyleSheet("QRadioButton::indicator { width: 15px; height: 15px; }""QRadioButton { font-size: 13px; }");
-
     lineEditDestinationsRS = new QLineEdit(this);
-    lineEditDestinationsRS->setGeometry(LENGTH * 3.5 / 14 - 8, WIDTH * 3 / 19 + 5, LENGTH / 2.5, WIDTH / 17);
+    lineEditDestinationsRS->setGeometry(LENGTH * 3.5 / 14 + 180, WIDTH * 3 / 19 + 115, 450, WIDTH / 17);
     lineEditDestinationsRS->setFont(QFont("黑体", 15));
     lineEditDestinationsRS->setPlaceholderText("请输入多个目的地（用空格分隔）");
     lineEditDestinationsRS->setClearButtonEnabled(true);
     lineEditDestinationsRS->setValidator(new QRegularExpressionValidator(QRegularExpression("^([\u4e00-\u9fa5\\d]+(\\s[\u4e00-\u9fa5\\d]+)*)$"), this));  //只允许输入中文、数字及空格
+    lineEditDestinationsRS->setStyleSheet("QLineEdit {"
+                    "border: 2px solid #A6C1FF;" // 浅蓝色边框
+                    "border-radius: 8px;"         // 圆角
+                    "padding: 5px 10px;"          // 内边距
+                    "font-size: 15px;"            // 字体大小
+                    "background-color: #FFFFFF;"  // 背景颜色为白色
+                    "selection-background-color: #A6C1FF;" // 选择时文字背景颜色
+                    "}"
+                    "QLineEdit:hover {"
+                    "border: 2px solid #799BFF;" // 悬浮时边框颜色变深
+                    "}"
+                    "QLineEdit:focus {"
+                    "border: 2px solid #3F7FFF;" // 聚焦时边框颜色更深
+                    "}"
+                    "QLineEdit QAbstractSpinBox::up-button, QLineEdit QAbstractSpinBox::down-button {"
+                    "border-style: none;" // 去掉上下箭头按钮的边框
+                    "background: transparent;" // 设置箭头按钮背景透明
+                    "}"
+                    "QLineEdit::placeholder {"
+                    "color: #A0A0A0;" // 提示文本颜色
+                    "font-style: italic;" // 提示文本斜体
+                    "}"
+                    );
 }
 
 StringList Route_Strategy::pointToPointShortestDistance(const string& start, const string& end, const vector<RoadInfo>& roads, int& totalLength) {
@@ -392,26 +504,61 @@ StringList Route_Strategy::multiPointShortestDistance(string start, StringList r
 }
 
 void Route_Strategy::paintEvent(QPaintEvent*) {
-    if (mode == 0)  //初始化界面&用户输入不符合规定时不进行绘制
-        return;
-    QPen pen(Qt::black);  //画笔颜色为黑色
-    pen.setWidth(2);  //画笔宽度
+    QPen pen(Qt::white);  //画笔颜色为白色
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
-    painter.setPen(pen);  //使用pen画图
-    painter.setFont(QFont("黑体", 22));
+    if (mode == 0){  //初始化界面&用户输入不符合规定时仅绘制背景
+        QPixmap pix;
+        pix.load(":/resource/3.jpg");
+        int windowWidth = this->width();
+        int windowHeight = this->height();
+        QPixmap scaledPix = pix.scaled(windowWidth, windowHeight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        painter.drawPixmap(0, 0, scaledPix);
+        pen.setWidth(0);
+        painter.setPen(pen);
+        painter.setBrush(Qt::white);
+        painter.setOpacity(0.5);
+        painter.drawRect(300, 0, 900, 950);
+        painter.setOpacity(1);
+        pen.setWidth(2);
+        pen.setColor(Qt::black);
+        painter.setPen(pen);
+        painter.setFont(QFont("黑体", 25));
+        QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前所在景区/学校:" + place);
+        painter.drawText((LENGTH - textRect.width())/2, 100, "当前所在景区/学校:" + place);
+        return;
+    }
+    QPixmap pix;
+    pix.load(":/resource/3.jpg");
+    int windowWidth = this->width();
+    int windowHeight = this->height();
+    QPixmap scaledPix = pix.scaled(windowWidth, windowHeight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    painter.drawPixmap(0, 0, scaledPix);
+    pen.setWidth(0);
+    painter.setPen(pen);
+    painter.setBrush(Qt::white);
+    painter.setOpacity(0.5);
+    painter.drawRect(300, 0, 900, 950);
+    painter.setOpacity(1);
+    pen.setWidth(2);
+    pen.setColor(Qt::black);
+    painter.setPen(pen);
+    painter.setFont(QFont("黑体", 25));
+    QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前所在景区/学校:" + place);
+    painter.drawText((LENGTH - textRect.width())/2, 100, "当前所在景区/学校:" + place);
+    painter.setFont(QFont("黑体", 18));
     if (buttonShortestTimeRS->isChecked())  //如果选中了最短时间按钮
-        painter.drawText(200,800,QString("最短时间为：%1s").arg(totalTimeOrLenth));
+        painter.drawText(330,850,QString("最短时间为：%1s").arg(totalTimeOrLenth));
     else if (buttonShortestDistanceRS->isChecked())  //如果选中了最短距离按钮
-        painter.drawText(200, 800, QString("最短距离为：%1m").arg(totalTimeOrLenth));
-    painter.drawText(200, 300, "路线：");
+        painter.drawText(330, 850, QString("最短距离为：%1m").arg(totalTimeOrLenth));
+    painter.drawText(330, 400, "路线：");
     for (int i = 0, j = 0; i < (int)minPath.size(); i++) {
-        if (i % 5 == 0 && i != 0)
+        if (i % 6 == 0 && i != 0)
             j++;
         if (i == (int)minPath.size() - 1)
-            painter.drawText(100 + 200 * (i % 5 + 1), 300 + 100 * j, QString::fromStdString(minPath[i]));
+            painter.drawText(270 + 130 * (i % 6 + 1), 400 + 100 * j, QString::fromStdString(minPath[i]));
         else
-            painter.drawText(100 + 200 * (i % 5 + 1), 300 + 100 * j, QString::fromStdString(minPath[i]) + "  ->");
+            painter.drawText(270 + 130 * (i % 6 + 1), 400 + 100 * j, QString::fromStdString(minPath[i]) + " ->");
     }
 }
 
