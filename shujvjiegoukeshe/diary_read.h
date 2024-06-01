@@ -28,6 +28,12 @@ private:
     QPushButton* buttonSubmit = NULL;  //提交修改按钮
     QPushButton* buttonDelete = NULL;  //删除日记按钮
     void initWidget();  //界面初始化函数
+
+    void generateCodes(Node* root, const QString& str, QMap<QChar, QString>& huffmanCode);  //生成哈夫曼编码表
+    Node* buildHuffmanTree(const QString& text);  //构建哈夫曼树
+    QString huffmanCompression(const QString& text);  //哈夫曼压缩函数
+    QString huffmanUncompression(const QString& compressedData);  //解码哈夫曼压缩内容
+
     void paintEvent(QPaintEvent*);
 };
 

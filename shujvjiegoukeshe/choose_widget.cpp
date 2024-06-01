@@ -98,26 +98,25 @@ void Choose_Widget::initWidget() {
     buttonChooseback = new QPushButton("返回", this);
     buttonChooseback->move(0, WIDTH * 17 / 18);
     buttonChooseback->resize(50, WIDTH / 18);
-    buttonChooseback->setStyleSheet(
-        "QPushButton {"
-        "    background-color: #ff9444;" // 设置背景颜色为较浅的偏橙色
-        "    border-style: outset;"       // 边框样式
-        "    border-width: 2px;"          // 边框宽度
-        "    border-radius: 10px;"        // 边框圆角
-        "    border-color: #555555;"      // 边框颜色
-        "    font: bold 25px;"             // 字体大小和粗细
-        "    min-width: 3em;"             // 调整按钮的最小宽度
-        "    padding: 4px;"               // 调整内边距
-        "    color: white;"                // 字体颜色
-        "}"
-        "QPushButton:hover {"
-        "    background-color: #ffa944;"  // 悬停时的背景颜色调整为更浅的偏橙色
-        "}"
-        "QPushButton:pressed {"
-        "    background-color: #ff8c44;"  // 鼠标按下时的背景颜色调整为较深的偏橙色
-        "    border-style: inset;"
-        "}"
-        );
+    buttonChooseback->setStyleSheet("QPushButton {"
+                                    "    background-color: #ff9444;" // 设置背景颜色为较浅的偏橙色
+                                    "    border-style: outset;"       // 边框样式
+                                    "    border-width: 2px;"          // 边框宽度
+                                    "    border-radius: 10px;"        // 边框圆角
+                                    "    border-color: #555555;"      // 边框颜色
+                                    "    font: bold 25px;"             // 字体大小和粗细
+                                    "    min-width: 3em;"             // 调整按钮的最小宽度
+                                    "    padding: 4px;"               // 调整内边距
+                                    "    color: white;"                // 字体颜色
+                                    "}"
+                                    "QPushButton:hover {"
+                                    "    background-color: #ffa944;"  // 悬停时的背景颜色调整为更浅的偏橙色
+                                    "}"
+                                    "QPushButton:pressed {"
+                                    "    background-color: #ff8c44;"  // 鼠标按下时的背景颜色调整为较深的偏橙色
+                                    "    border-style: inset;"
+                                    "}"
+                                    );
 
 }
 
@@ -142,5 +141,5 @@ void Choose_Widget::paintEvent(QPaintEvent*) {
     painter.setOpacity(1);
     painter.setFont(QFont("黑体", 25));
     QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前所在景区/学校:" + place);
-    painter.drawText((LENGTH - textRect.width())/2, 100, "当前所在景区/学校:" + place);
+    painter.drawText((LENGTH - textRect.width()) / 2, 100, "当前所在景区/学校:" + place);
 }

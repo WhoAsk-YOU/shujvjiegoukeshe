@@ -49,6 +49,7 @@ private:
     void initWidget();  //界面初始化函数
 
     vector<DiaryInfo> search(string keyword, vector<DiaryInfo> diaries);  //查找函数
+    QString huffmanUncompression(const QString& compressedData);  //解码哈夫曼压缩内容
     bool compareStrings(const string& str1, const string& str2);  //精确比较两个字符串是否相等
     bool containsSubstring(const string& str, const string& sub);  //子串包含检索
 

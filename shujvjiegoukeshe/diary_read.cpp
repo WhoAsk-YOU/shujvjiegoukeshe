@@ -22,7 +22,7 @@ Diary_Read::Diary_Read(int diaryId, QString accountNumber, QString place)
     });
 }
 
-Diary_Read::~Diary_Read(){
+Diary_Read::~Diary_Read() {
     delete diaryReadEdit;
     diaryReadEdit = NULL;
     delete buttonChooseback;
@@ -35,19 +35,19 @@ Diary_Read::~Diary_Read(){
     buttonDelete = NULL;
 }
 
-void Diary_Read::mark(){
+void Diary_Read::mark() {
     QSqlQuery query;
     query.prepare("SELECT account_number FROM t_user WHERE user_id = (SELECT writer FROM t_diary WHERE diary_id = :diaryId)");
     query.bindValue(":diaryId", diaryId);
     query.exec();
     query.next();
-    if(query.value(0).toString() == accountNumber){  //若是本人查看日记，则不必评分
+    if (query.value(0).toString() == accountNumber) {  //若是本人查看日记，则不必评分
         emit this->chooseback();  // 发出返回游学日记管理界面的信号
         return;
     }
     bool ok;
     int score = QInputDialog::getInt(this, "评分", "请输入日记评分(1-100)：", 0, 1, 100, 1, &ok);
-    if(ok){  //若点击ok按钮
+    if (ok) {  //若点击ok按钮
         query.clear();
         query.prepare("UPDATE t_diary SET rating_frequency = rating_frequency + 1, "
                       "total_score = total_score + :score WHERE diary_id = :diaryId");
@@ -58,7 +58,7 @@ void Diary_Read::mark(){
     emit this->chooseback();  // 发出返回游学日记管理界面的信号
 }
 
-void Diary_Read::submitAlterDiary(){
+void Diary_Read::submitAlterDiary() {
     QSqlQuery query;
     QString writerAccountNumber;  //日记作者
     query.prepare("SELECT account_number FROM t_user WHERE user_id = (SELECT writer FROM t_diary WHERE diary_id = :diaryId)");
@@ -66,30 +66,30 @@ void Diary_Read::submitAlterDiary(){
     query.exec();
     query.next();
     writerAccountNumber = query.value(0).toString();
-    if(writerAccountNumber == accountNumber){
+    if (writerAccountNumber == accountNumber) {
         query.clear();
-        if(lineEditDiaryTitle->text().isEmpty()){
+        if (lineEditDiaryTitle->text().isEmpty()) {
             query.prepare("UPDATE t_diary SET content = :content WHERE diary_id = :diaryId");
-            query.bindValue(":content", diaryReadEdit->toPlainText());
+            query.bindValue(":content", huffmanCompression(diaryReadEdit->toPlainText()));
             query.bindValue(":diaryId", diaryId);
         }
-        else{
+        else {
             query.prepare("UPDATE t_diary SET title = :title, content = :content WHERE diary_id = :diaryId");
             query.bindValue(":title", lineEditDiaryTitle->text());
-            query.bindValue(":content", diaryReadEdit->toPlainText());
+            query.bindValue(":content", huffmanCompression(diaryReadEdit->toPlainText()));
             query.bindValue(":diaryId", diaryId);
         }
         query.exec();
         QMessageBox::information(this, "修改成功", "修改成功");
         emit this->chooseback();
     }
-    else{
+    else {
         QMessageBox::information(this, "修改失败", "修改失败，仅日记作者可修改本人日记");
     }
     return;
 }
 
-void Diary_Read::deleteDiary(){
+void Diary_Read::deleteDiary() {
     QSqlQuery query;
     QString writerAccountNumber;  //日记作者
     query.prepare("SELECT account_number FROM t_user WHERE user_id = (SELECT writer FROM t_diary WHERE diary_id = :diaryId)");
@@ -97,7 +97,7 @@ void Diary_Read::deleteDiary(){
     query.exec();
     query.next();
     writerAccountNumber = query.value(0).toString();
-    if(writerAccountNumber == accountNumber){
+    if (writerAccountNumber == accountNumber) {
         query.clear();
         query.prepare("DELETE FROM t_diary WHERE diary_id = :diaryId");
         query.bindValue(":diaryId", diaryId);
@@ -105,35 +105,35 @@ void Diary_Read::deleteDiary(){
         QMessageBox::information(this, "删除成功", "删除成功");
         emit this->chooseback();
     }
-    else{
+    else {
         QMessageBox::information(this, "删除失败", "删除失败，仅日记作者可删除本人日记");
     }
     return;
 }
 
-void Diary_Read::initWidget(){
+void Diary_Read::initWidget() {
     setWindowTitle("学生游学系统");
     setFixedSize(LENGTH, WIDTH);
     QSqlQuery query;
     query.prepare("select content from t_diary where diary_id = :diaryId");  //从数据库中查询日记内容
-    query.bindValue(":diaryId",diaryId);
+    query.bindValue(":diaryId", diaryId);
     query.exec();
     query.next();
     diaryReadEdit = new QTextEdit(this);
-    diaryReadEdit->setPlainText(query.value(0).toString());
+    diaryReadEdit->setPlainText(huffmanUncompression(query.value(0).toString()));
     diaryReadEdit->setGeometry(490, 230, 520, 550);
     diaryReadEdit->setStyleSheet(""
-                                  "QTextEdit {"
-                                  "    background-color: #e0f0ff;" // 非常浅的蓝色背景
-                                  "    border-style: solid;"
-                                  "    border-width: 1px;"
-                                  "    border-color: #b0c0d0;" // 深一点的蓝色边框
-                                  "    border-radius: 8px;" // 圆角边框
-                                  "    padding: 8px;" // 内边距
-                                  "    font-family: 黑体;"
-                                  "    font-size: 12pt;"
-                                  "}"
-                                  "");
+                                 "QTextEdit {"
+                                 "    background-color: #e0f0ff;" // 非常浅的蓝色背景
+                                 "    border-style: solid;"
+                                 "    border-width: 1px;"
+                                 "    border-color: #b0c0d0;" // 深一点的蓝色边框
+                                 "    border-radius: 8px;" // 圆角边框
+                                 "    padding: 8px;" // 内边距
+                                 "    font-family: 黑体;"
+                                 "    font-size: 12pt;"
+                                 "}"
+                                 "");
     query.clear();
     query.prepare("SELECT account_number FROM t_user WHERE user_id = (SELECT writer FROM t_diary WHERE diary_id = :diaryId)");
     query.bindValue(":diaryId", diaryId);
@@ -236,6 +236,93 @@ void Diary_Read::initWidget(){
 
 }
 
+QString Diary_Read::huffmanUncompression(const QString& compressedData) {
+    QDataStream iss(compressedData.toStdString().c_str());
+    QString compressedText, huffmanCodeStr;
+    QString line;
+    QStringList parts = compressedData.split('|');
+    if (!parts.empty()) {
+        compressedText = parts.takeFirst();
+    }
+
+    QMap<QString, QChar> huffmanCode;
+    for (const QString& part : parts) {
+        if (part.length() > 1) {
+            QChar ch = part[0];
+            QString code = part.mid(1);
+            huffmanCode[code] = ch;
+        }
+    }
+
+    QString decodedText = "";
+    QString code = "";
+    for (QChar bit : compressedText) {
+        code += bit;
+        if (huffmanCode.contains(code)) {
+            decodedText += huffmanCode[code];
+            code = "";
+        }
+    }
+
+    return decodedText;
+}
+
+void Diary_Read::generateCodes(Node* root, const QString& str, QMap<QChar, QString>& huffmanCode) {
+    if (!root) return;
+
+    if (!root->left && !root->right) {
+        huffmanCode[root->ch] = str;
+    }
+
+    generateCodes(root->left, str + "0", huffmanCode);
+    generateCodes(root->right, str + "1", huffmanCode);
+}
+
+Node* Diary_Read::buildHuffmanTree(const QString& text) {
+    QMap<QChar, int> freq;
+    for (QChar ch : text) {
+        freq[ch]++;
+    }
+
+    priority_queue<Node*, vector<Node*>, compare> pq;
+    for (auto it = freq.begin(); it != freq.end(); ++it) {
+        pq.push(new Node(it.key(), it.value()));
+    }
+
+    while (pq.size() != 1) {
+        Node* left = pq.top(); pq.pop();
+        Node* right = pq.top(); pq.pop();
+
+        int sum = left->freq + right->freq;
+        Node* node = new Node(QChar(), sum);
+        node->left = left;
+        node->right = right;
+        pq.push(node);
+    }
+
+    return pq.top();
+}
+
+QString Diary_Read::huffmanCompression(const QString& text) {
+    Node* root = buildHuffmanTree(text);
+    QMap<QChar, QString> huffmanCode;
+    generateCodes(root, "", huffmanCode);
+
+    QString compressedText = "";
+    for (QChar ch : text) {
+        compressedText += huffmanCode[ch];
+    }
+
+    QString huffmanCodeStr = "";
+    for (auto it = huffmanCode.begin(); it != huffmanCode.end(); ++it) {
+        huffmanCodeStr += it.key();
+        huffmanCodeStr += it.value();
+        huffmanCodeStr += '|';
+    }
+
+    return compressedText + '|' + huffmanCodeStr;
+}
+
 void Diary_Read::paintEvent(QPaintEvent*) {
     QPen pen(Qt::white);  //画笔颜色为白色
     pen.setWidth(0);  //画笔宽度
@@ -257,5 +344,5 @@ void Diary_Read::paintEvent(QPaintEvent*) {
     painter.setOpacity(1);
     painter.setFont(QFont("黑体", 25));
     QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前所在景区/学校:" + place);
-    painter.drawText((LENGTH - textRect.width())/2, 100, "当前所在景区/学校:" + place);
+    painter.drawText((LENGTH - textRect.width()) / 2, 100, "当前所在景区/学校:" + place);
 }

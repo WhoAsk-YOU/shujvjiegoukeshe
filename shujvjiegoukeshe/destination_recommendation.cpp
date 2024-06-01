@@ -56,7 +56,7 @@ void Destination_Recommendation::showResult() {
         rankingTableDR->setHorizontalHeaderLabels(horizontalHeaderLabels);
     }
 
-    while(query.next()) {  //遍历数据集，将数据加入容器
+    while (query.next()) {  //遍历数据集，将数据加入容器
         Place spot;
         spot.name = query.value(0).toString().toStdString();  //获取景区/学校的名称
         spot.value = query.value(1).toInt();  //获取对应的热度或好评数
@@ -68,8 +68,7 @@ void Destination_Recommendation::showResult() {
     else  //如果没选中关键词优先
         SearchedPlaces = sort(PlaceSearch(place, origin_Places));  //模糊查找后再排序
 
-
-    for (int i = 0; i < min(rankingTableDR->rowCount(),(int)SearchedPlaces.size()); i++) {  //将排序后的数据填入表中
+    for (int i = 0; i < min(rankingTableDR->rowCount(), (int)SearchedPlaces.size()); i++) {  //将排序后的数据填入表中
         QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(SearchedPlaces[i].name));
         QTableWidgetItem* itemValue = new QTableWidgetItem(QString::number(SearchedPlaces[i].value));
         itemName->setTextAlignment(Qt::AlignCenter);
@@ -102,7 +101,7 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
     setWindowTitle("学生游学系统");
     setFixedSize(LENGTH, WIDTH);
     buttonExitDR = new QPushButton("退出", this);
-    buttonExitDR->move(0, WIDTH*17/18);
+    buttonExitDR->move(0, WIDTH * 17 / 18);
     buttonExitDR->resize(50, WIDTH / 18);
     buttonExitDR->setStyleSheet(
         "QPushButton {"
@@ -147,7 +146,7 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
                                   );
 
     lineEditSearchDR = new QLineEdit(this);
-    lineEditSearchDR->setGeometry(LENGTH / 2 - LENGTH / 7 -30, WIDTH * 3 / 19 + 90, LENGTH / 3.5, WIDTH / 17);
+    lineEditSearchDR->setGeometry(LENGTH / 2 - LENGTH / 7 - 30, WIDTH * 3 / 19 + 90, LENGTH / 3.5, WIDTH / 17);
     lineEditSearchDR->setPlaceholderText("请输入景区或学校名/关键词");
     lineEditSearchDR->setClearButtonEnabled(true);
     lineEditSearchDR->setMaxLength(20);
@@ -385,5 +384,5 @@ void Destination_Recommendation::paintEvent(QPaintEvent*) {
     painter.setPen(pen);
     painter.setFont(QFont("黑体", 25));
     QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "欢迎用户:" + accountNumber);
-    painter.drawText((LENGTH - textRect.width())/2, 100, "欢迎用户:" + accountNumber);
+    painter.drawText((LENGTH - textRect.width()) / 2, 100, "欢迎用户:" + accountNumber);
 }

@@ -24,6 +24,11 @@ private:
     QPushButton* buttonSubmit = NULL;  //提交按钮
     QPushButton* buttonChooseback = NULL;  //返回按钮
     void initWidget();  //界面初始化函数
+
+    void generateCodes(Node* root, const QString& str, QMap<QChar, QString>& huffmanCode);  //生成哈夫曼编码表
+    Node* buildHuffmanTree(const QString& text);  //构建哈夫曼树
+    QString huffmanCompression(const QString& text);  //哈夫曼压缩函数
+
     void paintEvent(QPaintEvent*);
 };
 

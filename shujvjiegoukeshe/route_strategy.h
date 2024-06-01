@@ -46,10 +46,10 @@ private:
     StringList multiPointShortestTime(string start, StringList requiredVertices, vector<RoadInfo> roads, float& totalTime);  //途径多点的最短时间
     StringList constructPath(const string& u, const string& v, unordered_map<string, unordered_map<string, string>>& next);  //构建完整路径
     void floydWarshallWithPathLength(unordered_map<string, unordered_map<string, int>>& graph, const StringList& vertices,
-                                    unordered_map<string, unordered_map<string, string>>& next);  //创建图并使用Floyd - Warshall算法计算所有节点之间的最短路径
+                                     unordered_map<string, unordered_map<string, string>>& next);  //创建图并使用Floyd - Warshall算法计算所有节点之间的最短路径
     pair<int, StringList> solveTSPLength(const unordered_map<string, unordered_map<string, int>>& graph, const StringList& reqVertices, const string& start);  //使用动态规划方法来解决TSP问题
     void floydWarshallWithPathTime(unordered_map<string, unordered_map<string, float>>& graph, const StringList& vertices,
-                                    unordered_map<string, unordered_map<string, string>>& next);
+                                   unordered_map<string, unordered_map<string, string>>& next);
     pair<float, StringList> solveTSPTime(const unordered_map<string, unordered_map<string, float>>& graph, const StringList& reqVertices, const string& start);
     void paintEvent(QPaintEvent*);  //重写paintEvent函数，用于在屏幕上打印出路线
 };

@@ -6,6 +6,7 @@
 #include <vector>
 #include <queue>
 #include <unordered_set>
+#include <sstream>
 #include <QTextEdit>  //文本编辑框
 #include <QRadioButton>  //选择框
 #include <QTableWidget>  //表格
@@ -57,6 +58,18 @@ struct RoadLengthInfo {  //道路长度信息
     string start;  //起点
     string end;  //终点
     int length;  //距离
+};
+struct Node {
+    QChar ch;
+    int freq;
+    Node* left;
+    Node* right;
+    Node(QChar c, int f) : ch(c), freq(f), left(nullptr), right(nullptr) {}
+};
+struct compare {
+    bool operator()(Node* l, Node* r) {
+        return l->freq > r->freq;
+    }
 };
 
 #endif // STRUCTURE_H

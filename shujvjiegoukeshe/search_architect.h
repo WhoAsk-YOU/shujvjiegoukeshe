@@ -31,8 +31,8 @@ private:
     void paintEvent(QPaintEvent*);
     StringList search(const string& type, const StringList& allFacilities);  //查找设施类型满足要求的设施名
     int dijkstraLength(const string& start, const string& end, const vector<RoadLengthInfo>& roads);
-    vector<pair<string, int>> sortPlacesByDistance(const string& currentLocation,const string& facilityType,
-                                                   const StringList& allFacilities,const vector<RoadLengthInfo>& roads);
+    vector<pair<string, int>> sortPlacesByDistance(const string& currentLocation, const string& facilityType,
+                                                   const StringList& allFacilities, const vector<RoadLengthInfo>& roads);
 };
 
 #endif // SEARCH_ARCHITECT_H
