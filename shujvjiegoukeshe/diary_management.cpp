@@ -1,28 +1,52 @@
 ﻿//游学日记管理界面
 #include "diary_management.h"
-
+#include <QDebug>
 Diary_Management::Diary_Management(QString accountNumber, QString place)
 {
     this->accountNumber = accountNumber;
     this->place = place;
     initWidget();
+    diaries = getDiaries();
+    showDiaries();
     connect(buttonChoosebackDM, &QPushButton::clicked, [=]() {  //若点击返回按钮
         emit this->chooseback();  //发出返回选择界面的信号
     });
     connect(buttonQueryDestinationDM, &QPushButton::clicked, [=]() {  //若点击目的地查询按钮
         mode = 1;
-        showResult();
+        diaries = getDiaries();
+        page = 1;
+        showDiaries();
     });
     connect(buttonQueryDiaryNameDM, &QPushButton::clicked, [=]() {  //若点击日记名查询按钮
         mode = 2;
-        showResult();
+        diaries = getDiaries();
+        page = 1;
+        showDiaries();
     });
     connect(buttonQueryDiaryContentDM, &QPushButton::clicked, [=]() {  //若点击全文检索查询按钮
         mode = 3;
-        showResult();
+        diaries = getDiaries();
+        page = 1;
+        showDiaries();
     });
     connect(buttonWriteDM, &QPushButton::clicked, [=]() {  //若点击写日记按钮
         clickWrite();
+    });
+    connect(buttonNextPage, &QPushButton::clicked, [=]() {  //若点击下一页按钮
+        if(diaries.size()%10 == 0){
+            if(page < (int)diaries.size()/10)
+                page++;
+        }
+        else{
+            if(page <= (int)diaries.size()/10)
+                page++;
+        }
+        showDiaries();
+    });
+    connect(buttonPreviousPage, &QPushButton::clicked, [=]() {  //若点击上一页按钮
+        if(page > 1)
+            page--;
+        showDiaries();
     });
     connect(tableDiaryInfoDM, &QTableWidget::cellClicked, [=](int row, int column) {  //若点击表格第二列中的某个单元格
         tableClicked(row, column);  //跳转到读日记界面
@@ -50,6 +74,10 @@ Diary_Management::~Diary_Management() {
     buttonQueryDiaryNameDM = NULL;
     delete boxDestinationDM;
     boxDestinationDM = NULL;
+    delete buttonNextPage;
+    buttonNextPage = NULL;
+    delete buttonPreviousPage;
+    buttonPreviousPage = NULL;
     delete lineEditDiaryNameDM;
     lineEditDiaryNameDM = NULL;
     delete tableDiaryInfoDM;
@@ -60,12 +88,13 @@ Diary_Management::~Diary_Management() {
     buttonQueryDiaryContentDM = NULL;
 }
 
-void Diary_Management::showResult() {
+vector<DiaryInfo> Diary_Management::getDiaries() {
     string destination = boxDestinationDM->currentText().toStdString();
     string diaryName = lineEditDiaryNameDM->text().toStdString();
+    string diaryContent = lineEditDiaryContentDM->text().toStdString();
     vector<DiaryInfo> diaries;
     QSqlQuery query;
-    query.exec("select d.diary_id,d.title,u.account_number,p.name,d.heat_value,d.good_comments "
+    query.exec("select d.diary_id,d.title,u.account_number,p.name,d.heat_value,d.total_score,d.rating_frequency "
                "from t_diary d join t_user u on d.writer = u.user_id "
                "join t_place_ranking p on d.place = p.place_id");
     while (query.next()){
@@ -75,7 +104,10 @@ void Diary_Management::showResult() {
         diaryInfo.authorAccount = query.value(2).toString().toStdString();
         diaryInfo.destination = query.value(3).toString().toStdString();
         diaryInfo.heatValue = query.value(4).toInt();
-        diaryInfo.goodComments = query.value(5).toInt();
+        if(query.value(5).toInt() == 0)
+            diaryInfo.avgScore = 0;
+        else
+            diaryInfo.avgScore = (int)query.value(5).toInt()/query.value(6).toInt();
         diaries.push_back(diaryInfo);
     }
     //调用查找和排序函数
@@ -83,29 +115,34 @@ void Diary_Management::showResult() {
         diaries = search(destination, diaries);
     else if(mode == 2)
         diaries = search(diaryName, diaries);
+    else if(mode == 3)
+        diaries = search(diaryContent, diaries);
+    return sort(diaries);
+}
 
+void Diary_Management::showDiaries(){
     for (int i = 0; i < tableDiaryInfoDM->rowCount(); i++)  //清空表中的内容
         for (int j = 0; j < tableDiaryInfoDM->columnCount(); j++)
             tableDiaryInfoDM->setItem(i, j, new QTableWidgetItem(""));
-    for (int i = 0; i < min(tableDiaryInfoDM->rowCount(), (int)diaries.size()); i++) {
+    for (int i = (page-1)*10; i < min(page*10, (int)diaries.size()); i++) {
         QTableWidgetItem* itemId = new QTableWidgetItem(QString::number(diaries[i].id));
         QTableWidgetItem* itemName = new QTableWidgetItem(QString::fromStdString(diaries[i].diaryName));
         QTableWidgetItem* itemAccountNumber = new QTableWidgetItem(QString::fromStdString(diaries[i].authorAccount));
         QTableWidgetItem* itemDestination = new QTableWidgetItem(QString::fromStdString(diaries[i].destination));
         QTableWidgetItem* itemHeatValue = new QTableWidgetItem(QString::number(diaries[i].heatValue));
-        QTableWidgetItem* itemGoodComments = new QTableWidgetItem(QString::number(diaries[i].goodComments));
+        QTableWidgetItem* itemAvgScore = new QTableWidgetItem(QString::number(diaries[i].avgScore));
         itemId->setTextAlignment(Qt::AlignCenter);
         itemName->setTextAlignment(Qt::AlignCenter);
         itemAccountNumber->setTextAlignment(Qt::AlignCenter);
         itemDestination->setTextAlignment(Qt::AlignCenter);
         itemHeatValue->setTextAlignment(Qt::AlignCenter);
-        itemGoodComments->setTextAlignment(Qt::AlignCenter);
-        tableDiaryInfoDM->setItem(i, 0, itemId);
-        tableDiaryInfoDM->setItem(i, 1, itemName);
-        tableDiaryInfoDM->setItem(i, 2, itemAccountNumber);
-        tableDiaryInfoDM->setItem(i, 3, itemDestination);
-        tableDiaryInfoDM->setItem(i, 4, itemHeatValue);
-        tableDiaryInfoDM->setItem(i, 5, itemGoodComments);
+        itemAvgScore->setTextAlignment(Qt::AlignCenter);
+        tableDiaryInfoDM->setItem(i-(page-1)*10, 0, itemId);
+        tableDiaryInfoDM->setItem(i-(page-1)*10, 1, itemName);
+        tableDiaryInfoDM->setItem(i-(page-1)*10, 2, itemAccountNumber);
+        tableDiaryInfoDM->setItem(i-(page-1)*10, 3, itemDestination);
+        tableDiaryInfoDM->setItem(i-(page-1)*10, 4, itemHeatValue);
+        tableDiaryInfoDM->setItem(i-(page-1)*10, 5, itemAvgScore);
     }
 }
 
@@ -145,7 +182,7 @@ void Diary_Management::initWidget() {
     QSqlQuery query;
     setWindowTitle("学生游学系统");
     setFixedSize(LENGTH, WIDTH);
-
+    mode = 1;
     labelDestinationDM = new QLabel("目的地查找：", this);
     labelDestinationDM->setGeometry(740, 217, 200, 45);
     labelDestinationDM->setAlignment(Qt::AlignCenter);
@@ -201,6 +238,48 @@ void Diary_Management::initWidget() {
                                  "    background-color: #c7d5e0;" // 按钮按下时的背景颜色
                                  "    border-style: inset;"       // 按下时的边框样式
                                  "}");
+    buttonNextPage = new QPushButton("下一页", this);
+    buttonNextPage->move(865, 880);
+    buttonNextPage->resize(70, WIDTH / 17);
+    buttonNextPage->setStyleSheet("QPushButton {"
+                                             "    background-color: #3399FF; /* 浅蓝色背景 */"
+                                             "    border-style: outset;"
+                                             "    border-width: 2px;"
+                                             "    border-radius: 10px; /* 圆角 */"
+                                             "    border-color: #1C5FAF; /* 稍深一点的蓝色边框 */"
+                                             "    font: bold 21px 黑体;"
+                                             "    min-width: 3em;"
+                                             "    padding: 6px;"
+                                             "}"
+                                             "QPushButton:hover {"
+                                             "    background-color: #1C5FAF; /* 鼠标悬停时的背景颜色 */"
+                                             "}"
+                                             "QPushButton:pressed {"
+                                             "    background-color: #082F5A; /* 按钮按下时的背景颜色 */"
+                                             "    border-style: inset;"
+                                             "}"
+                                             );
+    buttonPreviousPage = new QPushButton("上一页", this);
+    buttonPreviousPage->move(565, 880);
+    buttonPreviousPage->resize(70, WIDTH / 17);
+    buttonPreviousPage->setStyleSheet("QPushButton {"
+                                  "    background-color: #3399FF; /* 浅蓝色背景 */"
+                                  "    border-style: outset;"
+                                  "    border-width: 2px;"
+                                  "    border-radius: 10px; /* 圆角 */"
+                                  "    border-color: #1C5FAF; /* 稍深一点的蓝色边框 */"
+                                  "    font: bold 21px 黑体;"
+                                  "    min-width: 3em;"
+                                  "    padding: 6px;"
+                                  "}"
+                                  "QPushButton:hover {"
+                                  "    background-color: #1C5FAF; /* 鼠标悬停时的背景颜色 */"
+                                  "}"
+                                  "QPushButton:pressed {"
+                                  "    background-color: #082F5A; /* 按钮按下时的背景颜色 */"
+                                  "    border-style: inset;"
+                                  "}"
+                                  );
     buttonQueryDiaryContentDM = new QPushButton("查询", this);
     buttonQueryDiaryContentDM->move(1127, 297);
     buttonQueryDiaryContentDM->resize(70, WIDTH / 17);
@@ -333,7 +412,7 @@ void Diary_Management::initWidget() {
     tableDiaryInfoDM->verticalHeader()->setVisible(false);
     tableDiaryInfoDM->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableDiaryInfoDM->move((LENGTH - 952)/2, 370);
-    horizontalHeaderLabels << "日记编号" << "日记名称" << "作者账户名" << "目的地" << "热度" << "好评数";
+    horizontalHeaderLabels << "日记编号" << "日记名称" << "作者账户名" << "目的地" << "热度" << "评分";
     tableDiaryInfoDM->setHorizontalHeaderLabels(horizontalHeaderLabels);
     tableDiaryInfoDM->setStyleSheet("QTableWidget {"
                                   "    background-color: #e6f2ff; /* 浅蓝色背景 */"
@@ -389,6 +468,7 @@ void Diary_Management::initWidget() {
         QString name = query.value(0).toString();
         boxDestinationDM->addItem(name);
     }
+    boxDestinationDM->setCurrentIndex(boxDestinationDM->findText(place));
     boxDestinationDM->setStyleSheet(""
                              "QComboBox {"
                              "    border: 2px solid #A8A8A8;"
@@ -413,7 +493,7 @@ void Diary_Management::initWidget() {
 
 vector<DiaryInfo> Diary_Management::search(string keyword, vector<DiaryInfo> diaries){
     vector<DiaryInfo> result;
-    if ((mode == 1 && keyword == "全部") || (mode == 2 && keyword.empty()))
+    if ((mode == 1 && keyword == "全部") || ((mode == 2 || mode == 3) && keyword.empty()))
         return diaries;   //直接返回所有日记信息
     if (mode == 1) {
         for (const auto& diary : diaries) {
@@ -422,10 +502,23 @@ vector<DiaryInfo> Diary_Management::search(string keyword, vector<DiaryInfo> dia
         }
     }
     else if (mode == 2) {
-        vector<MatchedDiary> fuzzyResults = fuzzySearch(keyword, diaries);  //调用fuzzySearch函数进行模糊查找，并限制返回结果最多为10项
-        for (const auto& matchedDiary : fuzzyResults) {
-            result.push_back(matchedDiary.diary);
-            if (result.size() >= 10) break;  //达到10项后停止添加
+        for (const auto& diary : diaries) {
+            if (compareStrings(diary.diaryName, keyword)) {  // 精确查找日记名
+                result.push_back(diary);
+            }
+        }
+    }
+    else if (mode == 3){
+        QSqlQuery query;
+        for (const auto& diary : diaries){
+            query.prepare("select content from t_diary where diary_id = :diaryId");
+            query.bindValue(":diaryId", diary.id);
+            query.exec();
+            query.next();
+            if(containsSubstring(query.value(0).toString().toStdString(), keyword)){
+                result.push_back(diary);
+            }
+            query.clear();
         }
     }
     return result;
@@ -453,29 +546,35 @@ bool Diary_Management::containsSubstring(const string& str, const string& sub){
     return false;
 }
 
-vector<MatchedDiary> Diary_Management::fuzzySearch(string keyword, vector<DiaryInfo> diaries){
-    vector<MatchedDiary> continuousMatches, partialMatches;
-    for (const auto& diary : diaries) {
-        if (containsSubstring(diary.diaryName, keyword))  //连续包含模式串
-            continuousMatches.push_back({ diary, CONTINUOUS });
-        else {  //包含部分模式串
-            for (size_t i = 0; i < keyword.size(); ++i) {
-                if (containsSubstring(diary.diaryName, keyword.substr(i))) {
-                    partialMatches.push_back({ diary, PARTIAL });
-                    break; // 防止同一日记因多个子串匹配而重复添加
-                }
+void Diary_Management::insertionSort(std::vector<DiaryInfo>& diaries) {
+    for (size_t i = 1; i < diaries.size(); ++i) {
+        DiaryInfo key = diaries[i];
+        int j = i - 1;
+
+        if (buttonHeatValueDM->isChecked()) {
+            while (j >= 0 && diaries[j].heatValue < key.heatValue) {
+                diaries[j + 1] = diaries[j];
+                j--;
             }
         }
+        else if(buttonGoodCommentsDM->isChecked()){
+            while (j >= 0 && diaries[j].avgScore < key.avgScore) {
+                diaries[j + 1] = diaries[j];
+                j--;
+            }
+        }
+        diaries[j + 1] = key;
     }
-    //合并结果，优先连续包含的，再补充部分包含的，直到满10个
-    vector<MatchedDiary> results;
-    results.reserve(10);
-    results.insert(results.end(), continuousMatches.begin(), continuousMatches.end());
-    while (results.size() < 10 && !partialMatches.empty()) {
-        results.push_back(partialMatches.back());
-        partialMatches.pop_back();
+}
+
+vector<DiaryInfo> Diary_Management::sort(vector<DiaryInfo> diaries) {
+    if (buttonHeatValueDM->isChecked()) {
+        insertionSort(diaries);  // 按热度降序排序
     }
-    return results;
+    else if (buttonGoodCommentsDM->isChecked()) {
+        insertionSort(diaries);  // 按好评数降序排序
+    }
+    return diaries;
 }
 
 void Diary_Management::paintEvent(QPaintEvent*) {

@@ -15,6 +15,7 @@
 #include <QComboBox>  //下拉框
 #include <QPainter>  //画图
 #include <QWidget>  //窗口
+#include <QInputDialog>
 #include <QPushButton>  //按钮
 #include <QLabel>  //文字标签
 #include <QLineEdit>  //输入框
@@ -36,7 +37,7 @@ struct DiaryInfo {  //日记信息
     string authorAccount;  //作者账户名
     string destination;  //目的地
     int id;  //日记编号
-    int goodComments;  //好评数
+    int avgScore;  //评分
     int heatValue;  //热度
 };
 enum MatchType { CONTINUOUS, PARTIAL, NONE };  //匹配类型

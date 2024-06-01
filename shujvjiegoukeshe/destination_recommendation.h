@@ -30,7 +30,7 @@ private:
     QTableWidget* rankingTableDR = NULL;  //排名表格
 
     void initWidget();  //界面初始化函数
-
+    vector<Place> PlaceSearch(QString query, vector<Place> spots);
     vector<Place> fuzzySearchPlaces(const string& query, const vector<Place>& places, int n);  //查找算法
     StringList generateNgrams(const string& str, int n);
     bool comparePlaceMatch(const Place& a, const Place& b, const StringList& queryNgrams);

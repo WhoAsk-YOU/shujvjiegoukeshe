@@ -38,7 +38,7 @@ void Destination_Recommendation::showResult() {
     QSqlQuery query;
     QStringList horizontalHeaderLabels;
     vector<Place> origin_Places, SearchedPlaces;  //把数组放进向量里，统一PlaceSearch函数返回值格式
-    string place = lineEditSearchDR->text().toStdString();
+    QString place = lineEditSearchDR->text();
 
     for (int i = 0; i < rankingTableDR->rowCount(); i++) {  //清空表中的内容
         rankingTableDR->setItem(i, 1, new QTableWidgetItem(""));
@@ -56,7 +56,7 @@ void Destination_Recommendation::showResult() {
         rankingTableDR->setHorizontalHeaderLabels(horizontalHeaderLabels);
     }
 
-    while(query.next()) {  //遍历数据集，将数据加入结构数组
+    while(query.next()) {  //遍历数据集，将数据加入容器
         Place spot;
         spot.name = query.value(0).toString().toStdString();  //获取景区/学校的名称
         spot.value = query.value(1).toInt();  //获取对应的热度或好评数
@@ -64,9 +64,9 @@ void Destination_Recommendation::showResult() {
     }
 
     if (boxKeyWordDR->isChecked())  //如果选中了关键词优先
-        SearchedPlaces = fuzzySearchPlaces(place, origin_Places, 4);
+        SearchedPlaces = PlaceSearch(place, origin_Places);
     else  //如果没选中关键词优先
-        SearchedPlaces = sort(fuzzySearchPlaces(place, origin_Places, 4));  //模糊查找后再排序
+        SearchedPlaces = sort(PlaceSearch(place, origin_Places));  //模糊查找后再排序
 
 
     for (int i = 0; i < min(rankingTableDR->rowCount(),(int)SearchedPlaces.size()); i++) {  //将排序后的数据填入表中
@@ -243,6 +243,16 @@ void Destination_Recommendation::initWidget() {  //初始化目的地推荐界�
     rankingTableDR->setColumnWidth(2, 150);
 }
 
+vector<Place> Destination_Recommendation::Destination_Recommendation::PlaceSearch(QString query, vector<Place> spots)
+{
+    if (query.isEmpty())//如果输入为空串，打印所有
+        return spots;
+    if (query.length() == 1)
+        return fuzzySearchPlaces(query.toStdString(), spots, 1);
+    else
+        return fuzzySearchPlaces(query.toStdString(), spots, 4);
+}
+
 vector<Place> Destination_Recommendation::fuzzySearchPlaces(const string& query, const vector<Place>& places, int n) {
     if (empty(query))  //如果为空串，直接返回
         return places;
@@ -274,8 +284,8 @@ StringList Destination_Recommendation::generateNgrams(const string& str, int n) 
 }
 
 bool Destination_Recommendation::comparePlaceMatch(const Place& a, const Place& b, const StringList& queryNgrams) {
-    StringList aNgrams = generateNgrams(a.name, 4);
-    StringList bNgrams = generateNgrams(b.name, 4);
+    StringList aNgrams = generateNgrams(a.name, 2);
+    StringList bNgrams = generateNgrams(b.name, 2);
 
     int aMatches = 0;
     int bMatches = 0;

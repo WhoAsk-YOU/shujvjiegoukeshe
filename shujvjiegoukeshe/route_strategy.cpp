@@ -48,8 +48,8 @@ Route_Strategy::~Route_Strategy() {
 
 pair<int, StringList> Route_Strategy::readyToPaint(){
     QSqlQuery query;
-    float totalTime = 0;  //最短时间
-    int totalLength = INF;  //最短距离
+    float totalTime;  //最短时间
+    int totalLength;  //最短距离
     vector<RoadInfo> roadsInfo;  //所有道路信息
     unordered_set<string> starts;  //储存所有道路的起点
     StringList path;  //用于存储最终的路径
@@ -74,7 +74,7 @@ pair<int, StringList> Route_Strategy::readyToPaint(){
     if (mode == 1) {  //如果查询一个目的地
         if (buttonShortestTimeRS->isChecked()) {  //如果选中了最短时间按钮
             path = pointToPointShortestTime(initialLocation, destination,roadsInfo, totalTime);
-            return {(int)totalTime, path};
+            return {totalTime, path};
         }
         else if (buttonShortestDistanceRS->isChecked()) {  //如果选中了最短距离按钮
             path = pointToPointShortestDistance(initialLocation, destination, roadsInfo, totalLength);
@@ -88,6 +88,7 @@ pair<int, StringList> Route_Strategy::readyToPaint(){
         }
         QStringList destinationsTmp = lineEditDestinationsRS->text().split(" ");
         destinationsTmp.removeAll(QString::fromStdString(initialLocation));
+        destinationsTmp.removeAll(QString());
         if (destinationsTmp.isEmpty()){
             destinations.push_back(initialLocation);
             return {0, destinations};
@@ -100,16 +101,16 @@ pair<int, StringList> Route_Strategy::readyToPaint(){
             }
             destinations.push_back(str.toStdString());
         }
-
         if (buttonShortestTimeRS->isChecked()) {  //如果选中了最短时间按钮
-            //path = pointToPointShortestTime(initialLocation, destination,roadsInfo, totalTime);
-            //return {(int)totalTime, path};
+            path = multiPointShortestTime(initialLocation, destinations, roadsInfo, totalTime);
+            return {totalTime, path};
         }
         else if (buttonShortestDistanceRS->isChecked()) {  //如果选中了最短距离按钮
             path = multiPointShortestDistance(initialLocation, destinations, roadsInfo, totalLength);
             return {totalLength, path};
         }
     }
+    //return {0, destinations};
 }
 
 void Route_Strategy::initWidget() {
@@ -334,6 +335,7 @@ pair<StringList, int> Route_Strategy::dijkstraLength(const string& start, const 
         curr = prev[curr];
     }
     path.insert(path.begin(), start);
+    path.erase(::remove_if(path.begin(), path.end(), [](const string& str) {return str.find("道路节点") != string::npos;}), path.end());
     return { path, totallength };
 }
 
@@ -358,7 +360,6 @@ pair<StringList, float> Route_Strategy::dijkstraTime(const string& start, const 
     time[start] = 0;
     pq.emplace(0, start);
 
-
     while (!pq.empty()) {  //主循环
         float currDist = pq.top().first;
         string currNode = pq.top().second;
@@ -369,7 +370,7 @@ pair<StringList, float> Route_Strategy::dijkstraTime(const string& start, const 
 
         for (const auto& road : roads) {
             if (road.start == currNode) {
-                float alt = currDist + road.time;//
+                float alt = currDist + road.time;
                 if (alt < time[road.end]) {
                     time[road.end] = alt;
                     prev[road.end] = road.start;
@@ -388,15 +389,30 @@ pair<StringList, float> Route_Strategy::dijkstraTime(const string& start, const 
         curr = prev[curr];
     }
     path.insert(path.begin(), start);
+    path.erase(::remove_if(path.begin(), path.end(), [](const string& str) {return str.find("道路节点") != string::npos;}), path.end());
     return { path, totaltime };
 }
 
-void Route_Strategy::floydWarshallWithPath(unordered_map<string, unordered_map<string, int>>& graph, const StringList& vertices,
+void Route_Strategy::floydWarshallWithPathLength(unordered_map<string, unordered_map<string, int>>& graph, const StringList& vertices,
                                            unordered_map<string, unordered_map<string, string>>& next) {
     for (const string& k : vertices) {
         for (const string& i : vertices) {
             for (const string& j : vertices) {
                 if (graph[i][k] < INF && graph[k][j] < INF && graph[i][j] > graph[i][k] + graph[k][j]) {
+                    graph[i][j] = graph[i][k] + graph[k][j];
+                    next[i][j] = k;
+                }
+            }
+        }
+    }
+}
+
+void Route_Strategy::floydWarshallWithPathTime(unordered_map<string, unordered_map<string, float>>& graph, const StringList& vertices,
+                                                unordered_map<string, unordered_map<string, string>>& next) {
+    for (const string& k : vertices) {
+        for (const string& i : vertices) {
+            for (const string& j : vertices) {
+                if (graph[i][k] < numeric_limits<float>::max() && graph[k][j] < numeric_limits<float>::max() && graph[i][j] > graph[i][k] + graph[k][j]) {
                     graph[i][j] = graph[i][k] + graph[k][j];
                     next[i][j] = k;
                 }
@@ -417,7 +433,7 @@ StringList Route_Strategy::constructPath(const string& u, const string& v, unord
     }
 }
 
-pair<int, StringList> Route_Strategy::solveTSP(const unordered_map<string, unordered_map<string, int>>& graph, const StringList& reqVertices, const string& start) {
+pair<int, StringList> Route_Strategy::solveTSPLength(const unordered_map<string, unordered_map<string, int>>& graph, const StringList& reqVertices, const string& start) {
     int n = reqVertices.size();
     vector<vector<int>> dp(1 << n, vector<int>(n, INF));
     vector<vector<int>> parent(1 << n, vector<int>(n, -1));
@@ -464,10 +480,57 @@ pair<int, StringList> Route_Strategy::solveTSP(const unordered_map<string, unord
     return { min_cost, path };
 }
 
+pair<float, StringList> Route_Strategy::solveTSPTime(const unordered_map<string, unordered_map<string, float>>& graph, const StringList& reqVertices, const string& start) {
+    int n = reqVertices.size();
+    vector<vector<float>> dp(1 << n, vector<float>(n, numeric_limits<float>::max()));
+    vector<vector<float>> parent(1 << n, vector<float>(n, -1));
+    for (int i = 0; i < n; ++i)  //初始化DP
+        dp[1 << i][i] = graph.at(start).at(reqVertices[i]);
+    for (int mask = 1; mask < (1 << n); mask++) {  //填充DP表
+        for (int i = 0; i < n; i++) {
+            if (mask & (1 << i)) {
+                for (int j = 0; j < n; j++) {
+                    if (!(mask & (1 << j)) && graph.at(reqVertices[i]).at(reqVertices[j]) < numeric_limits<float>::max()) {
+                        float next_mask = mask | (1 << j);
+                        float new_cost = dp[mask][i] + graph.at(reqVertices[i]).at(reqVertices[j]);
+                        if (new_cost < dp[next_mask][j]) {
+                            dp[next_mask][j] = new_cost;
+                            parent[next_mask][j] = i;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    //寻找返回起点的最小成本
+    float min_cost = numeric_limits<float>::max();
+    int last_index = -1;
+    int final_mask = (1 << n) - 1;
+    for (int i = 0; i < n; ++i) {
+        if (dp[final_mask][i] + graph.at(reqVertices[i]).at(start) < min_cost) {
+            min_cost = dp[final_mask][i] + graph.at(reqVertices[i]).at(start);
+            last_index = i;
+        }
+    }
+    //重建路径
+    StringList path;
+    int current_mask = final_mask;
+    while (last_index != -1) {
+        path.push_back(reqVertices[last_index]);
+        int prev = last_index;
+        last_index = parent[current_mask][last_index];
+        current_mask -= (1 << prev);
+    }
+
+    reverse(path.begin(), path.end());
+    path.insert(path.begin(), start);  //开始
+    path.push_back(start);  //返回起点
+    return { min_cost, path };
+}
+
 StringList Route_Strategy::multiPointShortestDistance(string start, StringList requiredVertices, vector<RoadInfo> roads, int& totalLength){
-    StringList pathVertices, fullPath;
+    StringList pathVertices, fullPath, vertices = { start };
     unordered_map<string, unordered_map<string, int>> graph;
-    StringList vertices = { start };
     for (const auto& edge : roads) {  //添加所有顶点到图中
         graph[edge.start][edge.end] = edge.length;
         if (::find(vertices.begin(), vertices.end(), edge.start) == vertices.end()) {
@@ -491,15 +554,55 @@ StringList Route_Strategy::multiPointShortestDistance(string start, StringList r
             next[v][w] = "";
         }
     }
-    floydWarshallWithPath(graph, vertices, next);
+    floydWarshallWithPathLength(graph, vertices, next);
 
-    totalLength = solveTSP(graph, requiredVertices, start).first;
-    pathVertices = solveTSP(graph, requiredVertices, start).second;
+    totalLength = solveTSPLength(graph, requiredVertices, start).first;
+    pathVertices = solveTSPLength(graph, requiredVertices, start).second;
     fullPath.push_back(start);
     for (size_t i = 0; i < pathVertices.size() - 1; ++i) {
         StringList segment = constructPath(pathVertices[i], pathVertices[i + 1], next);
         fullPath.insert(fullPath.end(), segment.begin() + 1, segment.end());
     }
+    fullPath.erase(::remove_if(fullPath.begin(), fullPath.end(), [](const string& str) {return str.find("道路节点") != string::npos;}), fullPath.end());
+    return fullPath;
+}
+
+StringList Route_Strategy::multiPointShortestTime(string start, StringList requiredVertices, vector<RoadInfo> roads, float& totalTime){
+    StringList pathVertices, fullPath, vertices = { start };
+    unordered_map<string, unordered_map<string, float>> graph;
+    for (const auto& edge : roads) {  //添加所有顶点到图中
+        graph[edge.start][edge.end] = edge.time;
+        if (::find(vertices.begin(), vertices.end(), edge.start) == vertices.end()) {
+            vertices.push_back(edge.start);
+        }
+        if (::find(vertices.begin(), vertices.end(), edge.end) == vertices.end()) {
+            vertices.push_back(edge.end);
+        }
+    }
+    for (const string& v1 : vertices) {  //初始化图中每个顶点对的距离为无穷大
+        for (const string& v2 : vertices) {
+            if (graph[v1].find(v2) == graph[v1].end()) {
+                graph[v1][v2] = numeric_limits<float>::max();  //没有直接连接的顶点之间的距离设置为无穷大
+            }
+        }
+    }
+    //重建路径
+    unordered_map<string, unordered_map<string, string>> next;
+    for (const auto& v : vertices) {
+        for (const auto& w : vertices) {
+            next[v][w] = "";
+        }
+    }
+    floydWarshallWithPathTime(graph, vertices, next);
+
+    totalTime = solveTSPTime(graph, requiredVertices, start).first;
+    pathVertices = solveTSPTime(graph, requiredVertices, start).second;
+    fullPath.push_back(start);
+    for (size_t i = 0; i < pathVertices.size() - 1; ++i) {
+        StringList segment = constructPath(pathVertices[i], pathVertices[i + 1], next);
+        fullPath.insert(fullPath.end(), segment.begin() + 1, segment.end());
+    }
+    fullPath.erase(::remove_if(fullPath.begin(), fullPath.end(), [](const string& str) {return str.find("道路节点") != string::npos;}), fullPath.end());
     return fullPath;
 }
 
@@ -507,27 +610,6 @@ void Route_Strategy::paintEvent(QPaintEvent*) {
     QPen pen(Qt::white);  //画笔颜色为白色
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);  //设置抗锯齿能力，画面更清晰
-    if (mode == 0){  //初始化界面&用户输入不符合规定时仅绘制背景
-        QPixmap pix;
-        pix.load(":/resource/3.jpg");
-        int windowWidth = this->width();
-        int windowHeight = this->height();
-        QPixmap scaledPix = pix.scaled(windowWidth, windowHeight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-        painter.drawPixmap(0, 0, scaledPix);
-        pen.setWidth(0);
-        painter.setPen(pen);
-        painter.setBrush(Qt::white);
-        painter.setOpacity(0.5);
-        painter.drawRect(300, 0, 900, 950);
-        painter.setOpacity(1);
-        pen.setWidth(2);
-        pen.setColor(Qt::black);
-        painter.setPen(pen);
-        painter.setFont(QFont("黑体", 25));
-        QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前所在景区/学校:" + place);
-        painter.drawText((LENGTH - textRect.width())/2, 100, "当前所在景区/学校:" + place);
-        return;
-    }
     QPixmap pix;
     pix.load(":/resource/3.jpg");
     int windowWidth = this->width();
@@ -546,19 +628,22 @@ void Route_Strategy::paintEvent(QPaintEvent*) {
     painter.setFont(QFont("黑体", 25));
     QRect textRect = painter.boundingRect(QRect(), Qt::TextSingleLine, "当前所在景区/学校:" + place);
     painter.drawText((LENGTH - textRect.width())/2, 100, "当前所在景区/学校:" + place);
-    painter.setFont(QFont("黑体", 18));
-    if (buttonShortestTimeRS->isChecked())  //如果选中了最短时间按钮
-        painter.drawText(330,850,QString("最短时间为：%1s").arg(totalTimeOrLenth));
-    else if (buttonShortestDistanceRS->isChecked())  //如果选中了最短距离按钮
-        painter.drawText(330, 850, QString("最短距离为：%1m").arg(totalTimeOrLenth));
-    painter.drawText(330, 400, "路线：");
-    for (int i = 0, j = 0; i < (int)minPath.size(); i++) {
-        if (i % 6 == 0 && i != 0)
-            j++;
-        if (i == (int)minPath.size() - 1)
-            painter.drawText(270 + 130 * (i % 6 + 1), 400 + 100 * j, QString::fromStdString(minPath[i]));
-        else
-            painter.drawText(270 + 130 * (i % 6 + 1), 400 + 100 * j, QString::fromStdString(minPath[i]) + " ->");
+    if(mode != 0){
+        painter.setFont(QFont("黑体", 18));
+        if (buttonShortestTimeRS->isChecked())  //如果选中了最短时间按钮
+            painter.drawText(330,850,QString("最短时间为：%1s").arg(totalTimeOrLenth));
+        else if (buttonShortestDistanceRS->isChecked())  //如果选中了最短距离按钮
+            painter.drawText(330, 850, QString("最短距离为：%1m").arg(totalTimeOrLenth));
+        painter.drawText(330, 400, "路线：");
+        for (int i = 0, j = 0; i < (int)minPath.size(); i++) {
+            if (i % 6 == 0 && i != 0)
+                j++;
+            if (i == (int)minPath.size() - 1)
+                painter.drawText(270 + 130 * (i % 6 + 1), 400 + 100 * j, QString::fromStdString(minPath[i]));
+            else
+                painter.drawText(270 + 130 * (i % 6 + 1), 400 + 100 * j, QString::fromStdString(minPath[i]) + " ->");
+        }
     }
+    return;
 }
 

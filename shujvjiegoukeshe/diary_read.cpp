@@ -5,9 +5,20 @@ Diary_Read::Diary_Read(int diaryId, QString accountNumber, QString place)
     this->diaryId = diaryId;
     this->accountNumber = accountNumber;
     this->place = place;
+    QSqlQuery query;
+    query.prepare("UPDATE t_diary SET heat_value = heat_value + 1 WHERE diary_id = :diaryId");
+    query.bindValue(":diaryId", diaryId);
+    query.exec();
+    query.clear();
     initWidget();
     connect(buttonChooseback, &QPushButton::clicked, [=]() {  //若点击返回按钮
-        emit this->chooseback();  //发出返回游学日记管理界面的信号
+        mark();
+    });
+    connect(buttonSubmit, &QPushButton::clicked, [=]() {  //若点击修改按钮
+        submitAlterDiary();
+    });
+    connect(buttonDelete, &QPushButton::clicked, [=]() {  //若点击删除按钮
+        deleteDiary();
     });
 }
 
@@ -24,6 +35,82 @@ Diary_Read::~Diary_Read(){
     buttonDelete = NULL;
 }
 
+void Diary_Read::mark(){
+    QSqlQuery query;
+    query.prepare("SELECT account_number FROM t_user WHERE user_id = (SELECT writer FROM t_diary WHERE diary_id = :diaryId)");
+    query.bindValue(":diaryId", diaryId);
+    query.exec();
+    query.next();
+    if(query.value(0).toString() == accountNumber){  //若是本人查看日记，则不必评分
+        emit this->chooseback();  // 发出返回游学日记管理界面的信号
+        return;
+    }
+    bool ok;
+    int score = QInputDialog::getInt(this, "评分", "请输入日记评分(1-100)：", 0, 1, 100, 1, &ok);
+    if(ok){  //若点击ok按钮
+        query.clear();
+        query.prepare("UPDATE t_diary SET rating_frequency = rating_frequency + 1, "
+                      "total_score = total_score + :score WHERE diary_id = :diaryId");
+        query.bindValue(":score", score);
+        query.bindValue(":diaryId", diaryId);
+        query.exec();
+    }
+    emit this->chooseback();  // 发出返回游学日记管理界面的信号
+}
+
+void Diary_Read::submitAlterDiary(){
+    QSqlQuery query;
+    QString writerAccountNumber;  //日记作者
+    query.prepare("SELECT account_number FROM t_user WHERE user_id = (SELECT writer FROM t_diary WHERE diary_id = :diaryId)");
+    query.bindValue(":diaryId", diaryId);
+    query.exec();
+    query.next();
+    writerAccountNumber = query.value(0).toString();
+    if(writerAccountNumber == accountNumber){
+        query.clear();
+        if(lineEditDiaryTitle->text().isEmpty()){
+            query.prepare("UPDATE t_diary SET content = :content WHERE diary_id = :diaryId");
+            query.bindValue(":content", diaryReadEdit->toPlainText());
+            query.bindValue(":diaryId", diaryId);
+        }
+        else{
+            query.prepare("UPDATE t_diary SET title = :title, content = :content WHERE diary_id = :diaryId");
+            query.bindValue(":title", lineEditDiaryTitle->text());
+            query.bindValue(":content", diaryReadEdit->toPlainText());
+            query.bindValue(":diaryId", diaryId);
+        }
+        query.exec();
+        QMessageBox::information(this, "修改成功", "修改成功");
+        emit this->chooseback();
+    }
+    else{
+        QMessageBox::information(this, "修改失败", "修改失败，仅日记作者可修改本人日记");
+    }
+    return;
+}
+
+void Diary_Read::deleteDiary(){
+    QSqlQuery query;
+    QString writerAccountNumber;  //日记作者
+    query.prepare("SELECT account_number FROM t_user WHERE user_id = (SELECT writer FROM t_diary WHERE diary_id = :diaryId)");
+    query.bindValue(":diaryId", diaryId);
+    query.exec();
+    query.next();
+    writerAccountNumber = query.value(0).toString();
+    if(writerAccountNumber == accountNumber){
+        query.clear();
+        query.prepare("DELETE FROM t_diary WHERE diary_id = :diaryId");
+        query.bindValue(":diaryId", diaryId);
+        query.exec();
+        QMessageBox::information(this, "删除成功", "删除成功");
+        emit this->chooseback();
+    }
+    else{
+        QMessageBox::information(this, "删除失败", "删除失败，仅日记作者可删除本人日记");
+    }
+    return;
+}
+
 void Diary_Read::initWidget(){
     setWindowTitle("学生游学系统");
     setFixedSize(LENGTH, WIDTH);
@@ -33,7 +120,7 @@ void Diary_Read::initWidget(){
     query.exec();
     query.next();
     diaryReadEdit = new QTextEdit(this);
-    diaryReadEdit->setReadOnly(true);  //只可读，不可更改
+    diaryReadEdit->setPlainText(query.value(0).toString());
     diaryReadEdit->setGeometry(490, 230, 520, 550);
     diaryReadEdit->setStyleSheet(""
                                   "QTextEdit {"
@@ -47,7 +134,12 @@ void Diary_Read::initWidget(){
                                   "    font-size: 12pt;"
                                   "}"
                                   "");
-    diaryReadEdit->setPlainText(query.value(0).toString());
+    query.clear();
+    query.prepare("SELECT account_number FROM t_user WHERE user_id = (SELECT writer FROM t_diary WHERE diary_id = :diaryId)");
+    query.bindValue(":diaryId", diaryId);
+    query.exec();
+    query.next();
+    diaryReadEdit->setReadOnly(!(query.value(0).toString() == accountNumber));
     lineEditDiaryTitle = new QLineEdit(this);
     lineEditDiaryTitle->setGeometry(490, 170, 520, WIDTH / 15 - 10);
     lineEditDiaryTitle->setPlaceholderText("请输入修改后的日记名称(如有必要)");

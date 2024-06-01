@@ -48,6 +48,8 @@ void Start_widget::logOn() {  //登录
         if (accountNumber == query.value("account_number")) {  //账号匹配
             havingSignIn = true;
             if (password == query.value("password")) {  //密码正确
+                lineEditPassword->clear();
+                lineEditAccountNumber->clear();
                 query.clear();  //清空数据集
                 this->hide();  //隐藏开始界面
                 destinationRecommendation = new Destination_Recommendation(accountNumber);  //创建目的地推荐界面的对象

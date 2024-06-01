@@ -49,13 +49,15 @@ void Diary_Write::clickSubmit(){
     query.next();
     placeId = query.value(0).toInt();
     query.clear();
-    query.prepare("insert into t_diary(title,content,writer,place,heat_value,good_comments) values(:title,:content,:writer,:place,:heat_value,:good_comments)");
+    query.prepare("insert into t_diary(title,content,writer,place,heat_value,total_score,rating_frequency) "
+                  "values(:title,:content,:writer,:place,:heat_value,:total_score,:rating_frequency)");
     query.bindValue(":title", diaryTitle);
     query.bindValue(":content", diaryContent);
     query.bindValue(":writer", userId);
     query.bindValue(":place", placeId);
     query.bindValue(":heat_value", 0);
-    query.bindValue(":good_comments", 0);
+    query.bindValue(":total_score", 0);
+    query.bindValue(":rating_frequency", 0);
     query.exec();
     QMessageBox::information(this, "提交成功", "日记提交成功");
     emit this->chooseback();
@@ -69,6 +71,7 @@ void Diary_Write::initWidget(){
     lineEditDiaryTitle->setGeometry(490, 170, 520, WIDTH / 15 - 10);
     lineEditDiaryTitle->setPlaceholderText("请输入日记名称");
     lineEditDiaryTitle->setClearButtonEnabled(true);
+    lineEditDiaryTitle->setValidator(new QRegularExpressionValidator(QRegularExpression("[\u4e00-\u9fff]+"), this));
     lineEditDiaryTitle->setMaxLength(70);
     lineEditDiaryTitle->setStyleSheet("QLineEdit {"
                                           "border: 2px solid #A6C1FF;" // 浅蓝色边框
@@ -95,6 +98,7 @@ void Diary_Write::initWidget(){
                                           );
     diaryWriteEdit = new QTextEdit(this);
     diaryWriteEdit->setGeometry(490, 230, 520, 550);
+    //diaryWriteEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("[\u4e00-\u9fff]+"), this));
     diaryWriteEdit->setStyleSheet(""
                                   "QTextEdit {"
                                   "    background-color: #e0f0ff;" // 非常浅的蓝色背景

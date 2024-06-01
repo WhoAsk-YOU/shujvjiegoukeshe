@@ -13,6 +13,11 @@ public:
 signals:
     void chooseback();  //返回信号
 
+private slots:
+    void mark();
+    void submitAlterDiary();
+    void deleteDiary();
+
 private:
     int diaryId;  //日记编号
     QString accountNumber;
